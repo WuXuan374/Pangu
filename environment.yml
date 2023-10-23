@@ -1,4 +1,4 @@
-name: bottom_up
+name: pangu
 channels:
   - pytorch
   - defaults
@@ -414,7 +414,7 @@ dependencies:
     - blis==0.4.1
     - boto3==1.21.11
     - botocore==1.24.11
-    - cached-path==1.0.2
+    - cached-path
     - cachetools==5.0.0
     - catalogue==1.0.0
     - checklist==0.0.11
@@ -427,7 +427,6 @@ dependencies:
     - dill==0.3.6
     - docker-pycreds==0.4.0
     - editdistance==0.6.0
-    - en-core-web-sm==3.2.0
     - fairscale==0.4.5
     - feedparser==6.0.8
     - filelock==3.4.2
@@ -511,7 +510,6 @@ dependencies:
     - setuptools==59.5.0
     - sgmllib3k==1.0.0
     - shortuuid==1.0.8
-    - simplet5==0.1.4
     - simpletransformers==0.63.9
     - smart-open==5.2.1
     - smmap==5.0.0
@@ -546,4 +544,3 @@ dependencies:
     - yarl==1.8.2
     - yaspin==2.1.0
     - zc-lockfile==2.0
-prefix: [path_to_your_conda_env]

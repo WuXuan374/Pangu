@@ -5,7 +5,7 @@ import urllib
 from pathlib import Path
 from tqdm import tqdm
 
-sparql = SPARQLWrapper("http://127.0.0.1:3094/sparql")  # link to your own sparql endpoint
+sparql = SPARQLWrapper("http://114.212.81.217:8896/sparql/")  # link to your own sparql endpoint
 sparql.setReturnFormat(JSON)
 
 path = str(Path(__file__).parent.absolute())

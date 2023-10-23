@@ -1,0 +1,4 @@
+predictions/*
+cache/*
+data/*
+*.pyc
