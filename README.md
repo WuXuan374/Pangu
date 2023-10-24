@@ -78,7 +78,7 @@ To do inference with a saved model, use the first configuration in `launch.json`
 PYTHONHASHSEED=23 python run.py \
     predict \
     [output_dir]/model.tar.gz \
-    [path_to_file] \
+    [path_to_file] \ -- 输入文件的路径
     --include-package \
     new_model.bottom_up_parser \
     --include-package \
