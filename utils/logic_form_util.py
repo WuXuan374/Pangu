@@ -6,6 +6,7 @@ from tqdm import tqdm
 from utils.sparql_executer import execute_query
 from utils.semparse_util import lisp_to_nested_expression, expression_to_lisp
 import json
+import re
 
 REVERSE = True  # if REVERSE, then reverse relations are also taken into account for semantic EM
 
@@ -523,17 +524,25 @@ def lisp_to_sparql(lisp_program: str):
                     entities.add(subp[2])
                 elif subp[2][0] == '#':  # variable
                     clauses.append("?x" + i + " ns:" + subp[1] + " ?x" + subp[2][1:] + " .")
-                else:  # literal
-                    if subp[2].__contains__('^^'):
-                        data_type = subp[2].split("^^")[1].split("#")[1]
-                        if data_type not in ['integer', 'float', 'dateTime', 'double']:
-                            subp[2] = f'"{subp[2].split("^^")[0] + "-08:00"}"^^<{subp[2].split("^^")[1]}>'
-                        else:
-                            subp[2] = f'"{subp[2].split("^^")[0]}"^^<{subp[2].split("^^")[1]}>'
+                else:  # literal or 2-hop relation
+                    if re.match(r'[\w_]*\.[\w_]*\.[\w_]*',subp[2]):
+                        # 2-hop relation
+                        pass
+                    else:
+                        if re.fullmatch("[a-zA-Z_]+\.[a-zA-Z_]+",subp[2]): # class e.g. education.university
+                            subp[2]='ns:'+subp[2]
+                        elif len(subp) > 3: # error splitting, e.g. "2100 Woodward Avenue"@en
+                            subp[2]=" ".join(subp[2:])
+                        elif subp[2].__contains__('^^'):
+                            data_type = subp[2].split("^^")[1].split("#")[1]
+                            if data_type not in ['integer', 'float', 'dateTime', 'double']:
+                                subp[2] = f'"{subp[2].split("^^")[0] + "-08:00"}"^^<{subp[2].split("^^")[1]}>'
+                            else:
+                                subp[2] = f'"{subp[2].split("^^")[0]}"^^<{subp[2].split("^^")[1]}>'
                         clauses.append("?x" + i + " ns:" + subp[1] + " " + subp[2] + " .")
-                    else:  # handles cons in webqsp
-                        clauses.append(f"?x ns:{subp[1]} ?obj .")
-                        clauses.append(f"FILTER (str(?obj) = \"{subp[2]}\") .")
+                    # else:  # handles cons in webqsp
+                    #     clauses.append(f"?x ns:{subp[1]} ?obj .")
+                    #     clauses.append(f"FILTER (str(?obj) = \"{subp[2]}\") .")
         elif subp[0] == 'AND':
             var1 = int(subp[2][1:])
             rooti = get_root(int(i))
@@ -555,9 +564,25 @@ def lisp_to_sparql(lisp_program: str):
                     # identical_variables[var1] = var2
                     identical_variables_r[root2] = root1
             else:  # 2nd argument is a class
+                # 局限性: TODO: 似乎仅支持 class 直接出现在 AND 后面的情况
                 clauses.append("?x" + i + " ns:type.object.type ns:" + subp[1] + " .")
         elif subp[0] in ['le', 'lt', 'ge', 'gt']:  # the 2nd can only be numerical value
-            clauses.append("?x" + i + " ns:" + subp[1] + " ?y" + i + " .")
+            if subp[1].startswith('#'): # 2-hop constraint
+                line_num = int(subp[1].replace('#',''))
+                first_relation = sub_programs[line_num][1]
+                second_relation = sub_programs[line_num][2]
+                
+                if isinstance(first_relation,list): # first relation is reversed
+                    clauses.append("?cvt" + " ns:" + first_relation[1] + " ?x"+i+" .")
+                else:
+                    clauses.append("?x"+i + " ns:"+ first_relation+ " ?cvt .")
+                
+                if isinstance(second_relation,list): #second relation is reversed
+                    clauses.append("?y"+ i + " ns:"+ second_relation[1] + " ?cvt .")
+                else:
+                    clauses.append("?cvt"+ " ns:" + second_relation+ " ?y"+i +" .")
+            else:
+                clauses.append("?x" + i + " ns:" + subp[1] + " ?y" + i + " .")
             if subp[0] == 'le':
                 op = "<="
             elif subp[0] == 'lt':
