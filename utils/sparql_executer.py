@@ -2,12 +2,14 @@ from typing import List, Tuple
 from SPARQLWrapper import SPARQLWrapper, JSON
 import json
 import urllib
+import logging
 from pathlib import Path
 from tqdm import tqdm
 
 sparql = SPARQLWrapper("http://114.212.81.217:8896/sparql/")  # link to your own sparql endpoint
 sparql.setReturnFormat(JSON)
 
+logger = logging.getLogger(__name__)
 path = str(Path(__file__).parent.absolute())
 
 with open(path + '/../ontology/fb_roles', 'r') as f:
@@ -21,12 +23,14 @@ for line in contents:
 
 def execute_query(query: str) -> List[str]:
     sparql.setQuery(query)
+    rtn = []
     try:
         results = sparql.query().convert()
-    except urllib.error.URLError:
-        print(query)
-        exit(0)
-    rtn = []
+    except Exception as e:
+        logger.error(f"Query {query} failed")
+        logger.error(f"Exception: {e}")
+        return rtn # 出错则默认返回空结果
+    
     for result in results['results']['bindings']:
         assert len(result) == 1  # only select one variable
         for var in result:

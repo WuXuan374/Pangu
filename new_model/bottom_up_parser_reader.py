@@ -144,11 +144,16 @@ class BUParser_DatasetReader(DatasetReader):
                 else:
                     level = None
                 if "s_expression" in item:
+                    gold_answer_type = None
+                    # 优先使用查询中出现的 class 作为 gold_answer_type
                     if "graph_query" in item:
                         for node in item["graph_query"]["nodes"]:
                             if node["node_type"] == 'class':
                                 gold_answer_type = node['id']
                                 break
+                    # 从 original 数据集中获得的 gold_answer_type, 同样是通过遍历 node 得到
+                    if gold_answer_type is None:
+                        gold_answer_type = item["gold_answer_type"]
                     yield self.text_to_instance(item['question'], entity_name=entity_name_map,
                                                 gold_answer_type=gold_answer_type,
                                                 gold_program=item["s_expression"], level=level, qid=item['qid'])
@@ -205,7 +210,11 @@ class BUParser_DatasetReader(DatasetReader):
                     if len(source) == 1:
                         source = source[0]
                     else:
-                        source = set(source)
+                        # TODO: 对于一些两跳的路径，缺乏处理能力
+                        try:
+                            source = set(source)
+                        except:
+                            logger.info(f"question: {question}; gold_program: {gold_program}; source: {source}")
                     gold_programs[k].append(Program(source=source,
                                                     code=filled_programs[pid],
                                                     code_raw=filled_programs_raw[pid],
