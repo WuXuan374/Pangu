@@ -6,41 +6,6 @@
 - train_data_path
 - device
 
-对于 grail_train_t5.jsonnet 脚本，我们所做的改动:
-
-
-original_100
-训练: 
-```shell
-PYTHONHASHSEED=23 python run.py \
-    train \
-    acl_configs/grail_train_t5.jsonnet \
-    --include-package \
-    new_model.bottom_up_parser \
-    --include-package \
-    new_model.bottom_up_parser_reader \
-    --include-package \
-    utils.huggingface_interface \
-    -s \
-    predictions/grailqa_1025_original_100
-```
-
-simulated_93
-训练: 
-```shell
-PYTHONHASHSEED=23 python run.py \
-    train \
-    acl_configs/grail_train_t5.jsonnet \
-    --include-package \
-    new_model.bottom_up_parser \
-    --include-package \
-    new_model.bottom_up_parser_reader \
-    --include-package \
-    utils.huggingface_interface \
-    -s \
-    predictions/grailqa_1025_simulated_93
-```
-
 original_4500
 ```shell
 PYTHONHASHSEED=23 python run.py \
@@ -71,36 +36,6 @@ PYTHONHASHSEED=23 python run.py \
     predictions/grailqa_1025_simulated_4104
 ```
 
-debug original_4500
-```shell
-PYTHONHASHSEED=23 python run.py \
-    train \
-    acl_configs/grail_train_t5.jsonnet \
-    --include-package \
-    new_model.bottom_up_parser \
-    --include-package \
-    new_model.bottom_up_parser_reader \
-    --include-package \
-    utils.huggingface_interface \
-    -s \
-    predictions/grailqa_1025_debug
-```
-
-debug simulated_4104
-```shell
-PYTHONHASHSEED=23 python run.py \
-    train \
-    acl_configs/grail_train_t5.jsonnet \
-    --include-package \
-    new_model.bottom_up_parser \
-    --include-package \
-    new_model.bottom_up_parser_reader \
-    --include-package \
-    utils.huggingface_interface \
-    -s \
-    predictions/grailqa_1025_debug_simulated
-```
-
 预测 grailqa_1025_original_4500_for_prediction
 ```shell
 PYTHONHASHSEED=23 python run.py \
@@ -120,8 +55,8 @@ PYTHONHASHSEED=23 python run.py \
     -o \
     "{'model': {'infer': true}, 'validation_dataset_reader': {'infer': true, 'perfect_entity_linking': false}}"
 ```
-Evaluate
-grailqa_1025_original_4500_for_prediction
+
+Evaluate grailqa_1025_original_4500_for_prediction
 ```shell
 python grail_valuate.py data/grailqa/grailqa_v1.0_dev.json predictions/grailqa_1025_original_4500_for_prediction/predictions_for_evaluation.json --fb_roles ontology/fb_roles --fb_types ontology/fb_types --reverse_properties ontology/reverse_properties
 ```

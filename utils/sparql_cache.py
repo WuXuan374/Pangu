@@ -40,9 +40,9 @@ class SparqlCache:
     def __init__(self, dataset: str = "grail"):
         self.dataset = dataset
         if dataset == "grail":
-            if os.path.exists(path + "/../cache/execution.json"):
-                logger.info("reading execution.json start")
-                with open(path + "/../cache/execution.json") as f:
+            if os.path.exists(path + "/../cache/grail_execution.json"):
+                logger.info("reading grail_execution.json start")
+                with open(path + "/../cache/grail_execution.json") as f:
                     self.execution = json.load(f)
                     if "is_reachable" not in self.execution:
                         self.execution["is_reachable"] = {}
@@ -50,7 +50,7 @@ class SparqlCache:
                         self.execution["is_intersectant"] = {}
                     if "sparql_execution" not in self.execution:
                         self.execution["sparql_execution"] = {}
-                logger.info("reading execution.json end")
+                logger.info("reading grail_execution.json end")
             else:
                 self.execution = {"types": {}, "in_relations": {}, "out_relations": {}, "in_entities": {},
                                       "out_entities": {},
@@ -237,8 +237,13 @@ class SparqlCache:
 
     def cache_results(self):
         if self.dataset == "grail":
-            with open(path + "/../cache/execution.json", 'w') as f1:
-                json.dump(self.execution, f1)
+            # with open(path + "/../cache/execution.json", 'w') as f1:
+            #     json.dump(self.execution, f1)
+            '''
+            观察到写入缓存之后，好像会导致格式的变化(再次读取时出问题)
+            我们已经把官方的 GrailQA 缓存下载下来了 那么就不更新他了
+            '''
+            pass 
         elif self.dataset == "gq1":
             with open(path + "/../cache/gq1_execution.json", 'w') as f1:
                 json.dump(self.execution, f1)
