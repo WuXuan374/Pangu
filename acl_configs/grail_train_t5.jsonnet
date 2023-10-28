@@ -1,6 +1,6 @@
 local dataset = "grail";
 local decoding_steps = 5;
-local device = 2;
+local device = 3;
 local training_option = 2;
 local val_option = 2;
 local eos = "[SEP]";
@@ -34,11 +34,11 @@ local eos = "[SEP]";
     "dropout": 0.5
   },
   "data_loader": {   // previously iterator
-    "shuffle": true,
+    "shuffle": false, // Debug, revert to true later
     "batch_size": 1
   },
   "validation_data_loader": {
-    "shuffle": true,
+    "shuffle": false, // Debug, revert to true later
     "batch_size": 1
   },
   "trainer": {

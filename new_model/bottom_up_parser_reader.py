@@ -154,11 +154,24 @@ class BUParser_DatasetReader(DatasetReader):
                     # 从 original 数据集中获得的 gold_answer_type, 同样是通过遍历 node 得到
                     if gold_answer_type is None:
                         gold_answer_type = item["gold_answer_type"]
-                    yield self.text_to_instance(item['question'], entity_name=entity_name_map,
+                    try:
+                        instance = self.text_to_instance(item['question'], entity_name=entity_name_map,
                                                 gold_answer_type=gold_answer_type,
                                                 gold_program=item["s_expression"], level=level, qid=item['qid'])
+                        yield instance
+                    except Exception as e:
+                        logger.error(f"exception: {e}")
+                        logger.error(f"skip instance {item['qid']}")
+                        continue
+                    
                 else:
-                    yield self.text_to_instance(item['question'], entity_name=entity_name_map, qid=item['qid'])
+                    try:
+                        instance = self.text_to_instance(item['question'], entity_name=entity_name_map, qid=item['qid'])
+                        yield instance
+                    except Exception as e:
+                        logger.error(f"exception: {e}")
+                        logger.error(f"skip instance {item['qid']}")
+                        continue
 
                 count += 1
 
@@ -210,11 +223,7 @@ class BUParser_DatasetReader(DatasetReader):
                     if len(source) == 1:
                         source = source[0]
                     else:
-                        # TODO: 对于一些两跳的路径，缺乏处理能力
-                        try:
-                            source = set(source)
-                        except:
-                            logger.info(f"question: {question}; gold_program: {gold_program}; source: {source}")
+                        source = set(source)
                     gold_programs[k].append(Program(source=source,
                                                     code=filled_programs[pid],
                                                     code_raw=filled_programs_raw[pid],

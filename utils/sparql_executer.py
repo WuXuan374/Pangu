@@ -54,12 +54,14 @@ def execute_unary(type: str) -> List[str]:
     """)
     # # print(query)
     sparql.setQuery(query)
+    rtn = []
     try:
         results = sparql.query().convert()
-    except urllib.error.URLError:
-        print(query)
-        exit(0)
-    rtn = []
+    except Exception as e:
+        logger.error(f"Query {query} failed")
+        logger.error(f"Exception: {e}")
+        return rtn # 出错则默认返回空结果
+    
     for result in results['results']['bindings']:
         rtn.append(result['value']['value'].replace('http://rdf.freebase.com/ns/', ''))
 
@@ -79,12 +81,14 @@ def execute_binary(relation: str) -> List[Tuple[str, str]]:
     """)
     # # print(query)
     sparql.setQuery(query)
+    rtn = []
     try:
         results = sparql.query().convert()
-    except urllib.error.URLError:
-        print(query)
-        exit(0)
-    rtn = []
+    except Exception as e:
+        logger.error(f"Query {query} failed")
+        logger.error(f"Exception: {e}")
+        return rtn # 出错则默认返回空结果
+    
     for result in results['results']['bindings']:
         rtn.append((result['x0']['value'], result['x1']['value']))
 
@@ -120,9 +124,10 @@ def is_intersectant(derivation1: tuple, derivation2: str):
     sparql.setQuery(query)
     try:
         results = sparql.query().convert()
-    except urllib.error.URLError:
-        print(query)
-        exit(0)
+    except Exception as e:
+        logger.error(f"Query {query} failed")
+        logger.error(f"Exception: {e}")
+        return False # 出错则默认返回空结果
     rtn = results['boolean']
     return rtn
 
@@ -143,9 +148,10 @@ def entity_type_connected(entity: str, type: str):
     sparql.setQuery(query)
     try:
         results = sparql.query().convert()
-    except urllib.error.URLError:
-        print(query)
-        exit(0)
+    except Exception as e:
+        logger.error(f"Query {query} failed")
+        logger.error(f"Exception: {e}")
+        return False # 出错则默认返回空结果
     rtn = results['boolean']
     return rtn
 
@@ -167,9 +173,10 @@ def entity_type_connected_2hop(entity: str, type: str):
     sparql.setQuery(query)
     try:
         results = sparql.query().convert()
-    except urllib.error.URLError:
-        print(query)
-        exit(0)
+    except Exception as e:
+        logger.error(f"Query {query} failed")
+        logger.error(f"Exception: {e}")
+        return False # 出错则默认返回空结果
     rtn = results['boolean']
     return rtn
 
@@ -192,9 +199,10 @@ def is_reachable(derivation: tuple, answer_type: str):
     sparql.setQuery(query)
     try:
         results = sparql.query().convert()
-    except urllib.error.URLError:
-        print(query)
-        exit(0)
+    except Exception as e:
+        logger.error(f"Query {query} failed")
+        logger.error(f"Exception: {e}")
+        return False # 出错则默认返回空结果
     rtn = results['boolean']
     return rtn
 
@@ -218,9 +226,10 @@ def is_reachable_cmp(derivation: tuple, answer_type: str):
     sparql.setQuery(query)
     try:
         results = sparql.query().convert()
-    except urllib.error.URLError:
-        print(query)
-        exit(0)
+    except Exception as e:
+        logger.error(f"Query {query} failed")
+        logger.error(f"Exception: {e}")
+        return False # 出错则默认返回空结果
     rtn = results['boolean']
     return rtn
 
@@ -240,12 +249,14 @@ def get_types(entity: str) -> List[str]:
     """)
     # print(query)
     sparql.setQuery(query)
+    rtn = []
     try:
         results = sparql.query().convert()
-    except urllib.error.URLError:
-        print(query)
-        exit(0)
-    rtn = []
+    except Exception as e:
+        logger.error(f"Query {query} failed")
+        logger.error(f"Exception: {e}")
+        return rtn # 出错则默认返回空结果
+
     for result in results['results']['bindings']:
         rtn.append(result['value']['value'].replace('http://rdf.freebase.com/ns/', ''))
 
@@ -297,12 +308,14 @@ def get_friendly_name(entity: str) -> str:
     """)
     # # print(query)
     sparql.setQuery(query)
+    rtn = []
     try:
         results = sparql.query().convert()
-    except urllib.error.URLError:
-        print(query)
-        exit(0)
-    rtn = []
+    except Exception as e:
+        logger.error(f"Query {query} failed")
+        logger.error(f"Exception: {e}")
+        return 'null' # 出错则默认返回空结果
+    
     for result in results['results']['bindings']:
         if result['value']['xml:lang'] == 'en':
             rtn.append(result['value']['value'])
@@ -324,9 +337,10 @@ def get_friendly_name(entity: str) -> str:
         sparql.setQuery(query)
         try:
             results = sparql.query().convert()
-        except urllib.error.URLError:
-            print(query)
-            exit(0)
+        except Exception as e:
+            logger.error(f"Query {query} failed")
+            logger.error(f"Exception: {e}")
+            return 'null' # 出错则默认返回空结果
         for result in results['results']['bindings']:
             if result['value']['xml:lang'] == 'en':
                 rtn.append(result['value']['value'])
@@ -354,9 +368,10 @@ def get_degree(entity: str):
     sparql.setQuery(query1)
     try:
         results = sparql.query().convert()
-    except urllib.error.URLError:
-        print(query1)
-        exit(0)
+    except Exception as e:
+        logger.error(f"Query {query1} failed")
+        logger.error(f"Exception: {e}")
+        return degree # 出错则默认返回空结果
     for result in results['results']['bindings']:
         degree += int(result['value']['value'])
 
@@ -375,9 +390,10 @@ def get_degree(entity: str):
     sparql.setQuery(query2)
     try:
         results = sparql.query().convert()
-    except urllib.error.URLError:
-        print(query2)
-        exit(0)
+    except Exception as e:
+        logger.error(f"Query {query2} failed")
+        logger.error(f"Exception: {e}")
+        return degree # 出错则默认返回空结果
     for result in results['results']['bindings']:
         degree += int(result['value']['value'])
 
@@ -405,9 +421,10 @@ def get_in_attributes(value: str):
     sparql.setQuery(query1)
     try:
         results = sparql.query().convert()
-    except urllib.error.URLError:
-        print(query1)
-        exit(0)
+    except Exception as e:
+        logger.error(f"Query {query1} failed")
+        logger.error(f"Exception: {e}")
+        return in_attributes # 出错则默认返回空结果
     for result in results['results']['bindings']:
         in_attributes.add(result['value']['value'].replace('http://rdf.freebase.com/ns/', ''))
 
@@ -445,9 +462,10 @@ def get_negative_relations(relation: str):
     sparql.setQuery(query1)
     try:
         results = sparql.query().convert()
-    except urllib.error.URLError:
-        print(query1)
-        exit(0)
+    except Exception as e:
+        logger.error(f"Query {query1} failed")
+        logger.error(f"Exception: {e}")
+        return same_dir, inverse_dir # 出错则默认返回空结果
     for result in results['results']['bindings']:
         same_dir.add(result['x0']['value'].replace('http://rdf.freebase.com/ns/', ''))
         inverse_dir.add(result['x1']['value'].replace('http://rdf.freebase.com/ns/', ''))
@@ -476,9 +494,10 @@ def get_in_relations(entity: str):
     sparql.setQuery(query1)
     try:
         results = sparql.query().convert()
-    except urllib.error.URLError:
-        print(query1)
-        exit(0)
+    except Exception as e:
+        logger.error(f"Query {query1} failed")
+        logger.error(f"Exception: {e}")
+        return in_relations # 出错则默认返回空结果
     for result in results['results']['bindings']:
         in_relations.add(result['value']['value'].replace('http://rdf.freebase.com/ns/', ''))
 
@@ -506,9 +525,10 @@ def get_in_entities(entity: str, relation: str):
     sparql.setQuery(query1)
     try:
         results = sparql.query().convert()
-    except urllib.error.URLError:
-        print(query1)
-        exit(0)
+    except Exception as e:
+        logger.error(f"Query {query1} failed")
+        logger.error(f"Exception: {e}")
+        return neighbors # 出错则默认返回空结果
     for result in results['results']['bindings']:
         neighbors.add(result['value']['value'].replace('http://rdf.freebase.com/ns/', ''))
 
@@ -536,9 +556,10 @@ def get_in_entities_for_literal(value: str, relation: str):
     sparql.setQuery(query1)
     try:
         results = sparql.query().convert()
-    except urllib.error.URLError:
-        print(query1)
-        exit(0)
+    except Exception as e:
+        logger.error(f"Query {query1} failed")
+        logger.error(f"Exception: {e}")
+        return neighbors # 出错则默认返回空结果
     for result in results['results']['bindings']:
         neighbors.add(result['value']['value'].replace('http://rdf.freebase.com/ns/', ''))
 
@@ -566,9 +587,10 @@ def get_out_relations(entity: str):
     sparql.setQuery(query2)
     try:
         results = sparql.query().convert()
-    except urllib.error.URLError:
-        print(query2)
-        exit(0)
+    except Exception as e:
+        logger.error(f"Query {query2} failed")
+        logger.error(f"Exception: {e}")
+        return out_relations # 出错则默认返回空结果
     for result in results['results']['bindings']:
         out_relations.add(result['value']['value'].replace('http://rdf.freebase.com/ns/', ''))
 
@@ -596,9 +618,10 @@ def get_out_entities(entity: str, relation: str):
     sparql.setQuery(query2)
     try:
         results = sparql.query().convert()
-    except urllib.error.URLError:
-        print(query2)
-        exit(0)
+    except Exception as e:
+        logger.error(f"Query {query2} failed")
+        logger.error(f"Exception: {e}")
+        return neighbors # 出错则默认返回空结果
     for result in results['results']['bindings']:
         neighbors.add(result['value']['value'].replace('http://rdf.freebase.com/ns/', ''))
 
@@ -629,9 +652,10 @@ def get_entities_cmp(value, relation: str, cmp: str):
     sparql.setQuery(query2)
     try:
         results = sparql.query().convert()
-    except urllib.error.URLError:
-        print(query2)
-        exit(0)
+    except Exception as e:
+        logger.error(f"Query {query2} failed")
+        logger.error(f"Exception: {e}")
+        return neighbors # 出错则默认返回空结果
     for result in results['results']['bindings']:
         neighbors.add(result['value']['value'].replace('http://rdf.freebase.com/ns/', ''))
 
@@ -659,9 +683,10 @@ def get_adjacent_relations(entity: str):
     sparql.setQuery(query1)
     try:
         results = sparql.query().convert()
-    except urllib.error.URLError:
-        print(query1)
-        exit(0)
+    except Exception as e:
+        logger.error(f"Query {query1} failed")
+        logger.error(f"Exception: {e}")
+        return in_relations, out_relations # 出错则默认返回空结果
     for result in results['results']['bindings']:
         in_relations.add(result['value']['value'].replace('http://rdf.freebase.com/ns/', ''))
 
@@ -682,9 +707,10 @@ def get_adjacent_relations(entity: str):
     sparql.setQuery(query2)
     try:
         results = sparql.query().convert()
-    except urllib.error.URLError:
-        print(query2)
-        exit(0)
+    except Exception as e:
+        logger.error(f"Query {query2} failed")
+        logger.error(f"Exception: {e}")
+        return in_relations, out_relations # 出错则默认返回空结果
     for result in results['results']['bindings']:
         out_relations.add(result['value']['value'].replace('http://rdf.freebase.com/ns/', ''))
 
@@ -730,9 +756,10 @@ def get_2hop_relations(entity: str):
     sparql.setQuery(query1)
     try:
         results = sparql.query().convert()
-    except urllib.error.URLError:
-        print(query1)
-        exit(0)
+    except Exception as e:
+        logger.error(f"Query {query1} failed")
+        logger.error(f"Exception: {e}")
+        return in_relations, out_relations, paths # 出错则默认返回空结果
     for result in results['results']['bindings']:
         r1 = result['r1']['value'].replace('http://rdf.freebase.com/ns/', '')
         r0 = result['r0']['value'].replace('http://rdf.freebase.com/ns/', '')
@@ -759,9 +786,10 @@ def get_2hop_relations(entity: str):
     sparql.setQuery(query2)
     try:
         results = sparql.query().convert()
-    except urllib.error.URLError:
-        print(query2)
-        exit(0)
+    except Exception as e:
+        logger.error(f"Query {query2} failed")
+        logger.error(f"Exception: {e}")
+        return in_relations, out_relations, paths # 出错则默认返回空结果
     for result in results['results']['bindings']:
         r1 = result['r1']['value'].replace('http://rdf.freebase.com/ns/', '')
         r0 = result['r0']['value'].replace('http://rdf.freebase.com/ns/', '')
@@ -788,9 +816,10 @@ def get_2hop_relations(entity: str):
     sparql.setQuery(query3)
     try:
         results = sparql.query().convert()
-    except urllib.error.URLError:
-        print(query3)
-        exit(0)
+    except Exception as e:
+        logger.error(f"Query {query3} failed")
+        logger.error(f"Exception: {e}")
+        return in_relations, out_relations, paths # 出错则默认返回空结果
     for result in results['results']['bindings']:
         r1 = result['r1']['value'].replace('http://rdf.freebase.com/ns/', '')
         r0 = result['r0']['value'].replace('http://rdf.freebase.com/ns/', '')
@@ -817,9 +846,10 @@ def get_2hop_relations(entity: str):
     sparql.setQuery(query4)
     try:
         results = sparql.query().convert()
-    except urllib.error.URLError:
-        print(query4)
-        exit(0)
+    except Exception as e:
+        logger.error(f"Query {query4} failed")
+        logger.error(f"Exception: {e}")
+        return in_relations, out_relations, paths # 出错则默认返回空结果
     for result in results['results']['bindings']:
         r1 = result['r1']['value'].replace('http://rdf.freebase.com/ns/', '')
         r0 = result['r0']['value'].replace('http://rdf.freebase.com/ns/', '')
@@ -850,9 +880,10 @@ def get_label(entity: str) -> str:
     sparql.setQuery(query)
     try:
         results = sparql.query().convert()
-    except urllib.error.URLError:
-        print(query)
-        exit(0)
+    except Exception as e:
+        logger.error(f"Query {query} failed")
+        logger.error(f"Exception: {e}")
+        return None # 出错则默认返回空结果
     rtn = []
     for result in results['results']['bindings']:
         label = result['label']['value']

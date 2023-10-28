@@ -7,6 +7,9 @@ from utils.sparql_executer import execute_query
 from utils.semparse_util import lisp_to_nested_expression, expression_to_lisp
 import json
 import re
+import logging
+
+logger = logging.getLogger(__name__)
 
 REVERSE = True  # if REVERSE, then reverse relations are also taken into account for semantic EM
 
@@ -451,7 +454,12 @@ def get_derivations_from_lisp(expression: List):
 
             return previous
     elif expression[0] in ['le', 'ge', 'lt', 'gt']:
-        assert len(expression) == 3 and isinstance(expression[1], str) and isinstance(expression[2], str)
+        if not (len(expression) == 3 and isinstance(expression[1], str) and isinstance(expression[2], str)):
+            logger.error(f"Unhandled comparison expression: {expression}")
+            rtn = {expression[2]: (['^:' + expression[1][2]], expression[0])}
+            logger.info(f"rtn: {rtn}")
+            return rtn # TODO: 暂时这样
+        # assert len(expression) == 3 and isinstance(expression[1], str) and isinstance(expression[2], str)
         rtn = {expression[2]: (['^:' + expression[1]], expression[0])}
         return rtn
     elif expression[0] == 'TC':

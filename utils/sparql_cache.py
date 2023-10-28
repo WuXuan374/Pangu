@@ -41,6 +41,7 @@ class SparqlCache:
         self.dataset = dataset
         if dataset == "grail":
             if os.path.exists(path + "/../cache/execution.json"):
+                logger.info("reading execution.json start")
                 with open(path + "/../cache/execution.json") as f:
                     self.execution = json.load(f)
                     if "is_reachable" not in self.execution:
@@ -49,6 +50,7 @@ class SparqlCache:
                         self.execution["is_intersectant"] = {}
                     if "sparql_execution" not in self.execution:
                         self.execution["sparql_execution"] = {}
+                logger.info("reading execution.json end")
             else:
                 self.execution = {"types": {}, "in_relations": {}, "out_relations": {}, "in_entities": {},
                                       "out_entities": {},

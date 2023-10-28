@@ -35,7 +35,7 @@ from allennlp.training.metrics import Average
 
 from transformers import BertTokenizer, RobertaTokenizer, T5Tokenizer, T5ForConditionalGeneration, AutoTokenizer
 
-
+logger = logging.getLogger(__name__)
 # todo: in termination check, may also need to consider whether the highest program is a finalized/valid one
 
 def timer(func):
@@ -271,7 +271,6 @@ class BottomUpParser(Model):
             # cache the results during prediction
             self._computer._cache.cache_results()
 
-        # logging.info(f"Process question: {question}")
         if self._computer is not None:
             self._computer.set_training(training=self.training)
 
@@ -769,11 +768,12 @@ class BottomUpParser(Model):
         target_id = target_id[0]
 
         for pair in pairs:
-            concat.append(pair[0] + '</s>' + pair[1])
+            item = pair[0] + '</s>' + pair[1]
+            concat.append(item[:384]) # 硬编码一个限制，避免爆显存
 
         num_batch = math.ceil(len(pairs) / batch_size)
         logits_list = []
-        for i in range(num_batch):
+        for i in range(num_batch):  
             current_batch = concat[i * batch_size:(i + 1) * batch_size]
             pairs_input = self._tokenizer(current_batch, return_tensors='pt', padding=True)
             input_ids = pairs_input.input_ids.to(self._device)[:, :256]
@@ -784,6 +784,13 @@ class BottomUpParser(Model):
                                           attention_mask=attention_mask, use_cache=False, return_dict=True)["logits"]
 
             logits_list.append(outputs[:, 0, target_id])
+            # except Exception as e:
+            #     logger.error(f"error: {e}")
+            #     logger.info(f"current_batch: {current_batch}")
+            #     logger.info(f"shape: input_ids: {input_ids.shape}")
+            #     logger.info(f"shape: attention_mask: {attention_mask.shape}")
+            #     logger.info(f"shape: decoder_input_ids: {decoder_input_ids.shape}")
+            #     logger.info(f"outputs: {outputs}") 
 
         logits = torch.cat(logits_list, dim=0)
         return logits
