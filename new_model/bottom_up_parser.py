@@ -255,6 +255,7 @@ class BottomUpParser(Model):
             ids=None,
             answer_types=None
     ) -> Dict[str, torch.Tensor]:
+        logger.info(f"question: {question}")
         if self._enc_dec is None:
             self._device = next(self._source_embedder.parameters()).device
         else:
@@ -769,7 +770,7 @@ class BottomUpParser(Model):
 
         for pair in pairs:
             item = pair[0] + '</s>' + pair[1]
-            concat.append(item[:384]) # 硬编码一个限制，避免爆显存
+            concat.append(item[:256]) # 硬编码一个限制，避免爆显存
 
         num_batch = math.ceil(len(pairs) / batch_size)
         logits_list = []

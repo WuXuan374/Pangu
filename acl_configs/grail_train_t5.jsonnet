@@ -1,6 +1,6 @@
 local dataset = "grail";
 local decoding_steps = 5;
-local device = 0;
+local device = 4;
 local training_option = 2;
 local val_option = 2;
 local eos = "[SEP]";

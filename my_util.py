@@ -4,7 +4,7 @@ import logging
 
 '''完成实验结果的打包'''
 def my_archive():
-    serialization_dir = "predictions/grailqa_1025_original_4500_for_prediction"
+    serialization_dir = "predictions/grailqa_1025_simulated_4104_for_prediction"
     weights = "best.th"
     archive_path = None
     

@@ -3,6 +3,7 @@ import re
 import time
 import functools
 import json
+import logging
 from pathlib import Path
 from collections import defaultdict
 from typing import List, Dict
@@ -14,6 +15,7 @@ from utils.sparql_cache import SparqlCache
 from new_model.bottom_up_parser import Program
 
 path = str(Path(__file__).parent.absolute())
+logger = logging.getLogger(__name__)
 
 
 # todo: handle the conversion loss of lisp-to-sparql
@@ -912,13 +914,18 @@ class Computer:
                 answer_types = set(random.sample(self._classes, 5))
                 answer_types.add(gold_answer_type)
             elif self._dataset == 'grail':
-                at_domain = self._domain_info[gold_answer_type]
-                domain_types = set(self._domain_dict[at_domain]).intersection(self._classes)
-                if len(domain_types) > 5:
-                    answer_types = set(random.sample(domain_types, 5))
-                else:
-                    answer_types = domain_types
-                answer_types.add(gold_answer_type)
+                try:
+                    at_domain = self._domain_info[gold_answer_type]
+                    domain_types = set(self._domain_dict[at_domain]).intersection(self._classes)
+                    if len(domain_types) > 5:
+                        answer_types = set(random.sample(domain_types, 5))
+                    else:
+                        answer_types = domain_types
+                    answer_types.add(gold_answer_type)
+                except Exception as e: # _domain_info 中可能不含 gold_answer_type
+                    logger.error(f"Exception: {e}")
+                    answer_types = set()
+                    answer_types.add(gold_answer_type)
         initial_programs = []
         for v in entity_name:
             if v[:2] in ['m.', 'g.']:

@@ -20,6 +20,31 @@ PYTHONHASHSEED=23 python run.py \
     -s \
     predictions/grailqa_1025_original_4500
 ```
+预测 original_4500
+```shell
+PYTHONHASHSEED=23 python run.py \
+    predict \
+    predictions/grailqa_1025_original_4500/model.tar.gz \
+    data/grailqa/grailqa_v1.0_dev.json \
+    --include-package \
+    new_model.bottom_up_parser \
+    --include-package \
+    new_model.bottom_up_parser_reader \
+    --include-package \
+    utils.huggingface_interface \
+    --output-file \
+    predictions/grailqa_1025_original_4500/predictions.txt \
+    --use-dataset-reader \
+    --cuda 0 \
+    -o \
+    "{'model': {'infer': true}, 'validation_dataset_reader': {'infer': true, 'perfect_entity_linking': false}}"
+```
+应该只需要保留 `model.tar.gz`
+Evaluate grailqa_1025_original_4500
+```shell
+python grail_evaluate.py data/grailqa/grailqa_v1.0_dev.json predictions/grailqa_1025_original_4500/predictions_for_evaluation.json --fb_roles ontology/fb_roles --fb_types ontology/fb_types --reverse_properties ontology/reverse_properties
+```
+
 
 simulated_4104
 ```shell
@@ -35,12 +60,11 @@ PYTHONHASHSEED=23 python run.py \
     -s \
     predictions/grailqa_1025_simulated_4104
 ```
-
-预测 grailqa_1025_original_4500_for_prediction
+预测 simulated_4104
 ```shell
 PYTHONHASHSEED=23 python run.py \
     predict \
-    predictions/grailqa_1025_original_4500_for_prediction/model.tar.gz \
+    predictions/grailqa_1025_simulated_4104/model.tar.gz \
     data/grailqa/grailqa_v1.0_dev.json \
     --include-package \
     new_model.bottom_up_parser \
@@ -49,14 +73,13 @@ PYTHONHASHSEED=23 python run.py \
     --include-package \
     utils.huggingface_interface \
     --output-file \
-    predictions/grailqa_1025_original_4500_for_prediction/predictions.txt \
+    predictions/grailqa_1025_simulated_4104/predictions.txt \
     --use-dataset-reader \
-    --cuda 4 \
+    --cuda 0 \
     -o \
     "{'model': {'infer': true}, 'validation_dataset_reader': {'infer': true, 'perfect_entity_linking': false}}"
 ```
-
-Evaluate grailqa_1025_original_4500_for_prediction
+Evaluate grailqa_1025_simulated_4104
 ```shell
-python grail_valuate.py data/grailqa/grailqa_v1.0_dev.json predictions/grailqa_1025_original_4500_for_prediction/predictions_for_evaluation.json --fb_roles ontology/fb_roles --fb_types ontology/fb_types --reverse_properties ontology/reverse_properties
+python grail_evaluate.py data/grailqa/grailqa_v1.0_dev.json predictions/grailqa_1025_simulated_4104/predictions_for_evaluation.json --fb_roles ontology/fb_roles --fb_types ontology/fb_types --reverse_properties ontology/reverse_properties
 ```
