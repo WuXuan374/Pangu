@@ -237,13 +237,13 @@ class SparqlCache:
 
     def cache_results(self):
         if self.dataset == "grail":
-            # with open(path + "/../cache/execution.json", 'w') as f1:
-            #     json.dump(self.execution, f1)
+            with open(path + "/../cache/execution.json", 'w') as f1:
+                json.dump(self.execution, f1)
             '''
             观察到写入缓存之后，好像会导致格式的变化(再次读取时出问题)
             我们已经把官方的 GrailQA 缓存下载下来了 那么就不更新他了
             '''
-            pass 
+            # pass 
         elif self.dataset == "gq1":
             with open(path + "/../cache/gq1_execution.json", 'w') as f1:
                 json.dump(self.execution, f1)

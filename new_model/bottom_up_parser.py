@@ -400,6 +400,7 @@ class BottomUpParser(Model):
                         termination_flag = False
                         for i in range(len(highest_scores)):
                             # todo: for batching, need to handle the asynchronous termination issue
+                            # TODO: highest_scores[0] 还是 highest_scores[i]?
                             if len(scores[i]) > 0 and scores[i][0] > highest_scores[0]:
                                 # for inference, scores should be in descending order
                                 highest_scores[0] = scores[i][0]

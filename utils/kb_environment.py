@@ -6,16 +6,92 @@ import json
 import logging
 from pathlib import Path
 from collections import defaultdict
-from typing import List, Dict
+from typing import List, Dict, Tuple, Union, Set
 
-from allennlp.common.util import START_SYMBOL, END_SYMBOL
 from utils.logic_form_util import lisp_to_sparql, postprocess_raw_code
 from utils.semparse_util import lisp_to_nested_expression
 from utils.sparql_cache import SparqlCache
-from new_model.bottom_up_parser import Program
 
 path = str(Path(__file__).parent.absolute())
 logger = logging.getLogger(__name__)
+
+class Program:
+    def __init__(self,
+                 source: Union[Set, str] = None,
+                 code: str = '',  # used for PLM classifier
+                 code_raw: str = '',  # original code (i.e., code with mids)
+                 function: str = None,
+                 height: int = -1,
+                 execution: Union[Set, str] = None,
+                 finalized: bool = False,
+                 dummy: bool = False,  # dummy programs that make no sense; only for training
+                 derivations: Dict = None):
+        """
+        :param source: anchor entities/literals
+        :param code: programs with readable entity names
+        :param code_raw: original programs
+        :param function: function name of the outmost subprogram
+        :param height: height
+        :param execution: execution results or an arg class
+        :param finalized: whether it is a finalized program
+        :param derivations: relations paths (optionally with comparators) indexed by different source nodes
+        """
+        self.source = source
+        self.code = code
+        self.code_raw = code_raw
+        self.function = function
+        self.height = height
+        self.execution = execution
+        self.finalized = finalized
+        self.derivations = derivations  # (comments: I think derivations is only used for get reachable classes?)
+        self.dummy = dummy
+    
+    def execute(self, kb_engine):
+        if kb_engine is None:  # for training
+            # if True:  # todo: use another flag for this
+            try: # TODO: 不应该执行到这里
+                if isinstance(self.execution, tuple):
+                    self.execution = self.execution[0](*self.execution[1:])
+            except IndexError:  # some string constants in WebQSP
+                self.execution = set()
+        else:
+            # isinstance(self.execution, str) for
+            if not isinstance(self.execution, set) and not isinstance(self.execution, str):
+                # self.execution = self.execution[0](*self.execution[1:])
+                processed_code_raw = postprocess_raw_code(self.code_raw)
+                sparql_query = lisp_to_sparql(processed_code_raw)
+                try:
+                    # execution = execute_query(sparql_query)
+                    execution = kb_engine.execute_SPARQL(sparql_query)
+                    if isinstance(execution, list):
+                        execution = set(execution)
+                except Exception:
+                    execution = set()
+
+                self.execution = execution
+    
+    def is_cvt(self, kb_engine):
+        try:
+            # assert isinstance(self.execution, set) or isinstance(self.execution, list)
+            types = kb_engine.get_classes_for_variables(self.execution, cvt_check=True)
+            if len(types) == 0:
+                return False
+
+            cvt = True
+            for t in types:
+                if t not in kb_engine.cvt_types:
+                    cvt = False
+                    break
+            return cvt
+        except Exception:
+            print("is_cvt error:", self.code_raw)
+            return False
+    
+    def __str__(self):
+        return self.code_raw
+    
+    def __repr__(self):
+        return self.__str__()
 
 
 # todo: handle the conversion loss of lisp-to-sparql
@@ -137,7 +213,7 @@ class Computer:
             with open('ontology/domain_info', 'r') as f:
                 self._domain_info = json.load(f)
         self._class_out, self._class_in, self._relation_d, self._relation_r, self._date_attributes, \
-        self._numerical_attributes = get_ontology(dataset)
+        self._numerical_attributes = get_ontology(dataset) # TODO: 918 个数值相关的 attributes
         self._date_attributes = self._date_attributes.intersection(self._attributes)
         self._numerical_attributes = self._numerical_attributes.intersection(self._attributes)
         self._cache = SparqlCache(dataset)
@@ -910,7 +986,7 @@ class Computer:
     def get_initial_programs(self, entity_name, answer_types, gold_answer_type):
         if answer_types is None and self.training:
             # todo: sample hard negatives
-            if self._dataset == 'gq1':
+            if self._dataset == 'gq1': # TODO: 不应该执行到这
                 answer_types = set(random.sample(self._classes, 5))
                 answer_types.add(gold_answer_type)
             elif self._dataset == 'grail':
@@ -1032,7 +1108,7 @@ class Computer:
                                                     height=0,
                                                     # execution=(self.execute_JOIN, {v}, r),
                                                     finalized=True))
-                if self.training and len(entity_name) == 0:
+                if self.training and len(entity_name) == 0: # TODO: 不会执行
                     # this program makes no sense; only used to provide negative samples for superlatives
                     code = f'(JOIN {a} {" ".join(at.split(".")[-1].split("_"))})'
                     code_raw = code
