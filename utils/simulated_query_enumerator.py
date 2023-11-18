@@ -9,6 +9,7 @@ from utils.logic_form_util import (
     lisp_to_sparql
 )
 from utils.kb_environment import Computer, Program
+from utils.sentence_bert_utils import SentenceSimilarityPredictor
 import torch
 
 logger = logging.getLogger(__name__)
@@ -31,6 +32,7 @@ class Enumerator(object):
             self._computer = None # TODO: 不应该执行
         
         self._dataset = dataset
+        self.sentence_bert_ranker = SentenceSimilarityPredictor.instance()
     
     '''单个样例'''
     def run(
@@ -104,10 +106,10 @@ class Enumerator(object):
                     elif not isinstance(p.execution, int) and len(p.execution) > 0:
                         if not p.is_cvt(self._computer):
                             selection = True
-                    if selection:
-                        finalized = True
-                        predictions = p
-                        break
+                if selection:
+                    finalized = True
+                    predictions = p
+                    break
             if self._dataset == 'webq' and finalized:  # because torch.topk is unstable
                 entities = []
                 for e in entity_name: # entity_name 应该是按照实体链接的置信度排好序了
@@ -150,11 +152,12 @@ class Enumerator(object):
         candidate_programs: List[Program],
         question: str,
     ):
-        '''暂时不做任何排序，直接返回'''
-        scores = [random.random() for _ in range(len(candidate_programs))]
-        scores = torch.FloatTensor(scores)
+        '''暂时先用 SentenceBert'''
+        scores = self.sentence_bert_ranker.get_similarity(
+            question, [p.code for p in candidate_programs]
+        )
         # 为什么要 + 5? 还要过滤掉一些不可执行的 program
-        top_scores, top_indices = torch.topk(torch.FloatTensor(scores), k=min([len(candidate_programs), self._beam_size + 5]))
+        top_scores, top_indices = torch.topk(scores, k=min([len(candidate_programs), self._beam_size + 5]))
         
         rtn_candidates = []
         rtn_scores = []
@@ -174,5 +177,4 @@ class Enumerator(object):
                         continue
             rtn_candidates.append(candi)
             rtn_scores.append(score)
-
         return rtn_candidates, rtn_scores
