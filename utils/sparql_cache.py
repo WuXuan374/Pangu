@@ -12,6 +12,20 @@ from utils.sparql_executer import is_reachable, is_reachable_cmp, is_intersectan
     get_in_entities, \
     get_out_entities, \
     get_entities_cmp, get_in_entities_for_literal, get_in_attributes, execute_query
+from utils.sparql_executer_odbc import (
+    is_reachable as is_reachable_odbc,
+    is_reachable_cmp as is_reachable_cmp_odbc,
+    is_intersectant as is_intersectant_odbc,
+    get_types as get_types_odbc,
+    get_in_relations as get_in_relations_odbc,
+    get_out_relations as get_out_relations_odbc,
+    get_in_entities as get_in_entities_odbc,
+    get_out_entities as get_out_entities_odbc,
+    get_entities_cmp as get_entities_cmp_odbc,
+    get_in_entities_for_literal as get_in_entities_for_literal_odbc,
+    get_in_attributes as get_in_attributes_odbc,
+    execute_query as execute_query_odbc
+)
 
 path = str(Path(__file__).parent.absolute())
 
@@ -113,8 +127,9 @@ class SparqlCache:
 
     def get_sparql_execution(self, sparql_query):
         if sparql_query not in self.execution["sparql_execution"]:
-            self.execution["sparql_execution"][sparql_query] = execute_query(sparql_query)
-
+            self.execution["sparql_execution"][sparql_query] = execute_query_odbc(sparql_query)
+            # self.execution["sparql_execution"][sparql_query] = execute_query(sparql_query)
+            
         return self.execution["sparql_execution"][sparql_query]
 
     # @cache_log_decorator
@@ -132,8 +147,10 @@ class SparqlCache:
 
         if str((derivation1, derivation2)) not in self.execution["is_intersectant"]:
             miss += 1
-            self.execution["is_intersectant"][str((derivation1, derivation2))] = is_intersectant(derivation1,
+            self.execution["is_intersectant"][str((derivation1, derivation2))] = is_intersectant_odbc(derivation1,
                                                                                                      derivation2)
+            # self.execution["is_intersectant"][str((derivation1, derivation2))] = is_intersectant(derivation1,
+            #                                                                                          derivation2)
         return self.execution["is_intersectant"][str((derivation1, derivation2))]
 
     # @cache_log_decorator
@@ -146,11 +163,15 @@ class SparqlCache:
         if str((derivation, answer_type)) not in self.execution["is_reachable"]:
             miss += 1
             if len(derivation) == 2:
-                self.execution["is_reachable"][str((derivation, answer_type))] = is_reachable(derivation,
+                self.execution["is_reachable"][str((derivation, answer_type))] = is_reachable_odbc(derivation,
                                                                                                   answer_type)
+                # self.execution["is_reachable"][str((derivation, answer_type))] = is_reachable(derivation,
+                #                                                                                   answer_type)
             elif len(derivation) == 3:
-                self.execution["is_reachable"][str((derivation, answer_type))] = is_reachable_cmp(derivation,
+                self.execution["is_reachable"][str((derivation, answer_type))] = is_reachable_cmp_odbc(derivation,
                                                                                                       answer_type)
+                # self.execution["is_reachable"][str((derivation, answer_type))] = is_reachable_cmp(derivation,
+                #                                                                                       answer_type)
 
         return self.execution["is_reachable"][str((derivation, answer_type))]
 
@@ -159,7 +180,8 @@ class SparqlCache:
         global miss
         if entity not in self.execution["types"]:
             miss += 1
-            self.execution["types"][entity] = get_types(entity)
+            self.execution["types"][entity] = get_types_odbc(entity)
+            # self.execution["types"][entity] = get_types(entity)
             sleep(0.02)
 
         return self.execution["types"][entity]
@@ -169,7 +191,8 @@ class SparqlCache:
         global miss
         if entity not in self.execution["in_relations"]:
             miss += 1
-            self.execution["in_relations"][entity] = list(get_in_relations(entity))
+            self.execution["in_relations"][entity] = list(get_in_relations_odbc(entity))
+            # self.execution["in_relations"][entity] = list(get_in_relations(entity))
             sleep(0.02)
 
         return set(self.execution["in_relations"][entity])
@@ -179,7 +202,8 @@ class SparqlCache:
         global miss
         if literal not in self.execution["in_relations"]:
             miss += 1
-            self.execution["in_relations"][literal] = list(get_in_attributes(literal))
+            self.execution["in_relations"][literal] = list(get_in_attributes_odbc(literal))
+            # self.execution["in_relations"][literal] = list(get_in_attributes(literal))
             sleep(0.02)
 
         return set(self.execution["in_relations"][literal])
@@ -189,7 +213,8 @@ class SparqlCache:
         global miss
         if entity not in self.execution["out_relations"]:
             miss += 1
-            self.execution["out_relations"][entity] = list(get_out_relations(entity))
+            self.execution["out_relations"][entity] = list(get_out_relations_odbc(entity))
+            # self.execution["out_relations"][entity] = list(get_out_relations(entity))
             sleep(0.02)
 
         return set(self.execution["out_relations"][entity])
@@ -199,7 +224,8 @@ class SparqlCache:
         global miss
         if entity + relation not in self.execution["in_entities"]:
             miss += 1
-            self.execution["in_entities"][entity + relation] = list(get_in_entities(entity, relation))
+            self.execution["in_entities"][entity + relation] = list(get_in_entities_odbc(entity, relation))
+            # self.execution["in_entities"][entity + relation] = list(get_in_entities(entity, relation))
             sleep(0.02)
 
         return set(self.execution["in_entities"][entity + relation])
@@ -209,7 +235,8 @@ class SparqlCache:
         global miss
         if value + relation not in self.execution["in_entities"]:
             miss += 1
-            self.execution["in_entities"][value + relation] = list(get_in_entities_for_literal(value, relation))
+            self.execution["in_entities"][value + relation] = list(get_in_entities_for_literal_odbc(value, relation))
+            # self.execution["in_entities"][value + relation] = list(get_in_entities_for_literal(value, relation))
             sleep(0.02)
 
         return set(self.execution["in_entities"][value + relation])
@@ -219,7 +246,8 @@ class SparqlCache:
         global miss
         if entity + relation not in self.execution["out_entities"]:
             miss += 1
-            self.execution["out_entities"][entity + relation] = list(get_out_entities(entity, relation))
+            self.execution["out_entities"][entity + relation] = list(get_out_entities_odbc(entity, relation))
+            # self.execution["out_entities"][entity + relation] = list(get_out_entities(entity, relation))
             sleep(0.02)
 
         return set(self.execution["out_entities"][entity + relation])
@@ -230,7 +258,9 @@ class SparqlCache:
         if str(value) + relation + comp not in self.execution["cmp_entities"]:
             miss += 1
             self.execution["cmp_entities"][str(value) + relation + comp] = list(
-                get_entities_cmp(value, relation, comp))
+                get_entities_cmp_odbc(value, relation, comp))
+            # self.execution["cmp_entities"][str(value) + relation + comp] = list(
+            #     get_entities_cmp(value, relation, comp))
             sleep(0.02)
 
         return self.execution["cmp_entities"][str(value) + relation + comp]

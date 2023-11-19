@@ -4,7 +4,7 @@ import logging
 import time
 import json
 from tqdm import tqdm
-from utils.simulated_query_enumerator import Enumerator
+from utils.simulated_query_enumerator import Enumerator, postprocess_raw_code
 from func_timeout import func_timeout, FunctionTimedOut
 
 def read_examples_file(file_path, perfect_el=True):
@@ -79,29 +79,23 @@ def dump_json(obj, fname, indent=4, mode='w' ,encoding="utf8", ensure_ascii=Fals
 def enumeration_grailqa_debug():
     args = dict()
     current_time = datetime.now()
-    args["grailqa_file"] = "data/GrailQA_v1.0/grailqa_v1.0_dev.json" 
-    args["output_dir"] = f"data/output/grailqa_v1.0_dev_{current_time.strftime('%Y-%m-%d_%H:%M:%S')}"
+    args["grailqa_file"] = "data/GrailQA_v1.0/grailqa_v1.0_train_200.json" 
+    args["output_dir"] = f"data/output/grailqa_v1.0_train_200_{current_time.strftime('%Y-%m-%d_%H:%M:%S')}"
     args["sparql_timeout"] = 60
-    args["detection_timeout"] = 600  # 每个问题的最大探测时间
-    args["checkpoint_size"] = 2 # 每 500 条数据，把这 500 条的内容做个记录
+    args["detection_timeout"] = 7  # 每个问题的最大探测时间
+    args["checkpoint_size"] = 50 # 每 500 条数据，把这 500 条的内容做个记录
     args["beam_size"] = 5
     args["decoding_steps"] = 5
+    args["top_k"] = 3
     args["dataset"] = 'grail'
 
-    os.makedirs(args["output_dir"], exist_ok=True)
-    tmp_dir = os.path.join(args["output_dir"], "_tmp", "")
-    os.makedirs(tmp_dir, exist_ok=True)
-
     # TODO: 训练集上目前实体 和 答案类型都使用 golden 的，后面改成链接结果吧
-    examples = read_examples_file(args["grailqa_file"], perfect_el=True)[:5]
-    logger = setup_custom_logger(os.path.join(
-        args["output_dir"],
-        "log.txt"
-    ))
+    examples = read_examples_file(args["grailqa_file"], perfect_el=True)[:10]
+    logger = setup_custom_logger("data/test/log.txt")
     logger.info("arguments")
     for (key, value) in args.items():
         logger.info(f"{key}: {value}")
-    enumerator = Enumerator(
+    enumerator = Enumerator.instance(
         infer=True,
         beam_size=args["beam_size"],
         decoding_steps=args["decoding_steps"],
@@ -124,30 +118,183 @@ def enumeration_grailqa_debug():
             result = func_timeout(
                 args["detection_timeout"],
                 enumerator.run,
-                args=(example["question"], example["entity_name"], example["qid"], example["gold_answer_type"])
+                args=(example["question"], example["entity_name"], example["qid"], example["gold_answer_type"], args["top_k"])
             )
         except FunctionTimedOut:
-            logger.info(f"detection_instance.search() timed out after {args['detection_timeout']}s")
-        except BaseException as err:
-            logger.error(f"detection_instance.search(): {err}")
+            logger.info(f"qid: {example['qid']} timed out after {args['detection_timeout']}s")
+            try:
+                '''小技巧，基于执行结果的 program 再选择'''
+                beam_programs_sorted = sorted(
+                    enumerator.all_beam_programs, key=lambda x:x[1], reverse=True
+                ) # 从高到低排序
+
+                top_k_predictions_idx = list()
+                for (idx, (p, _)) in enumerate(beam_programs_sorted):  
+                    if p.finalized:
+                        if p.execution is None:
+                            top_k_predictions_idx.append(idx)
+                        elif isinstance(p.execution, int) and p.execution != 0:
+                            top_k_predictions_idx.append(idx)
+                        elif not isinstance(p.execution, int) and len(p.execution) > 0:
+                            if not p.is_cvt(enumerator._computer):
+                                top_k_predictions_idx.append(idx)
+                    if len(top_k_predictions_idx) >= args["top_k"]:
+                        break
+                # 可能仍然少于 topk, 那么剩余内容按照得分排序，填满 topk 位置(不再做 finalized 等检查了)
+                for (idx, (p, _)) in enumerate(beam_programs_sorted): 
+                    if idx in top_k_predictions_idx:
+                        continue
+                    if len(top_k_predictions_idx) >= args["top_k"]:
+                        break
+                    top_k_predictions_idx.append(idx)
+                top_k_predictions = [beam_programs_sorted[idx][0] for idx in top_k_predictions_idx]
+
+                for p in top_k_predictions:
+                    if p.code_raw != '':
+                        p.code_raw = postprocess_raw_code(p.code_raw)
+            except UnboundLocalError:  
+                print("question:", example["question"])
+            
+            result = {
+                "predictions": top_k_predictions,
+                "qid": example["qid"]
+            }
         
         detection_end_time = time.time()
         search_time_list.append(detection_end_time - detection_start_time)
         if result is not None and "predictions" in result:
             searched_query_list.append(result["predictions"])
+            logger.info(f"qid: {example['qid']}; pred: {result['predictions']}")
         else:
-            searched_query_list.append(None)
+            searched_query_list.append([])
         qid_list.append(example["qid"])
-        print(f"searched_query_list: {searched_query_list}")
+    
+    final_results["summary"] = {
+        "总数": len(examples),
+        "平均搜索时间": sum(search_time_list) / len(search_time_list),
+    }
+
+    final_results["results"] = [
+        {
+            "qid": qid,
+            "time": search_t,
+            "simulated_query_list": [q.code_raw for q in query_list],
+        } 
+        for (query_list, search_t, qid) in zip(searched_query_list, search_time_list, qid_list)
+    ]
+
+    print(final_results)
+
+def enumeration_grailqa():
+    args = dict()
+    current_time = datetime.now()
+    args["grailqa_file"] = "data/GrailQA_v1.0/grailqa_v1.0_train_200.json" 
+    args["output_dir"] = f"data/output/grailqa_v1.0_train_200_{current_time.strftime('%Y-%m-%d_%H:%M:%S')}"
+    args["sparql_timeout"] = 60
+    args["detection_timeout"] = 120  # 每个问题的最大探测时间
+    args["checkpoint_size"] = 50 # 每 500 条数据，把这 500 条的内容做个记录
+    args["beam_size"] = 5
+    args["decoding_steps"] = 20
+    args["top_k"] = 3
+    args["dataset"] = 'grail'
+
+    os.makedirs(args["output_dir"], exist_ok=True)
+    tmp_dir = os.path.join(args["output_dir"], "_tmp", "")
+    os.makedirs(tmp_dir, exist_ok=True)
+
+    # TODO: 训练集上目前实体 和 答案类型都使用 golden 的，后面改成链接结果吧
+    examples = read_examples_file(args["grailqa_file"], perfect_el=True)
+    logger = setup_custom_logger(os.path.join(
+        args["output_dir"],
+        "log.txt"
+    ))
+    logger.info("arguments")
+    for (key, value) in args.items():
+        logger.info(f"{key}: {value}")
+    enumerator = Enumerator.instance(
+        infer=True,
+        beam_size=args["beam_size"],
+        decoding_steps=args["decoding_steps"],
+        dataset=args["dataset"]
+    )
+
+    final_results = dict()
+    final_results["results"] = list()
+    final_results["summary"] = dict()
+    searched_query_list = list()
+    search_time_list = list()
+    qid_list = list()
+
+    logger.info(f"examples: {len(examples)}")
+    for (example_idx, example) in tqdm(enumerate(examples), desc="遍历所有 GrailQA 样本"):
+        detection_start_time = time.time()
+        result = None
+        try:
+            # TODO: 暂时使用 golden answer type
+            result = func_timeout(
+                args["detection_timeout"],
+                enumerator.run,
+                args=(example["question"], example["entity_name"], example["qid"], example["gold_answer_type"], args["top_k"])
+            )
+        except FunctionTimedOut:
+            logger.info(f"qid: {example['qid']} timed out after {args['detection_timeout']}s")
+            try:
+                '''小技巧，基于执行结果的 program 再选择'''
+                beam_programs_sorted = sorted(
+                    enumerator.all_beam_programs, key=lambda x:x[1], reverse=True
+                ) # 从高到低排序
+
+                top_k_predictions_idx = list()
+                for (idx, (p, _)) in enumerate(beam_programs_sorted):  
+                    if p.finalized:
+                        if p.execution is None:
+                            top_k_predictions_idx.append(idx)
+                        elif isinstance(p.execution, int) and p.execution != 0:
+                            top_k_predictions_idx.append(idx)
+                        elif not isinstance(p.execution, int) and len(p.execution) > 0:
+                            if not p.is_cvt(enumerator._computer):
+                                top_k_predictions_idx.append(idx)
+                    if len(top_k_predictions_idx) >= args["top_k"]:
+                        break
+                # 可能仍然少于 topk, 那么剩余内容按照得分排序，填满 topk 位置(不再做 finalized 等检查了)
+                for (idx, (p, _)) in enumerate(beam_programs_sorted): 
+                    if idx in top_k_predictions_idx:
+                        continue
+                    if len(top_k_predictions_idx) >= args["top_k"]:
+                        break
+                    top_k_predictions_idx.append(idx)
+                top_k_predictions = [beam_programs_sorted[idx][0] for idx in top_k_predictions_idx]
+
+                for p in top_k_predictions:
+                    if p.code_raw != '':
+                        p.code_raw = postprocess_raw_code(p.code_raw)
+            except UnboundLocalError:  
+                print("question:", example["question"])
+            
+            result = {
+                "predictions": top_k_predictions,
+                "qid": example["qid"]
+            }
+        except BaseException as err:
+            logger.error(f"err: {err}")
+        
+        detection_end_time = time.time()
+        search_time_list.append(detection_end_time - detection_start_time)
+        if result is not None and "predictions" in result:
+            searched_query_list.append(result["predictions"])
+            logger.info(f"qid: {example['qid']}; pred: {result['predictions']}")
+        else:
+            searched_query_list.append([])
+        qid_list.append(example["qid"])
 
         if (example_idx + 1) % args["checkpoint_size"] == 0:
             checkpoint_results = [
                 {
                     "qid": qid,
                     "time": search_t,
-                    "simulated_query": query.code_raw if query else None,
+                    "simulated_query_list": [q.code_raw for q in query_list],
                 }
-                for (query, search_t, qid) in zip(
+                for (query_list, search_t, qid) in zip(
                     searched_query_list[(example_idx + 1 - args["checkpoint_size"]): (example_idx + 1)], 
                     search_time_list[(example_idx + 1 - args["checkpoint_size"]): (example_idx + 1)], 
                     qid_list[(example_idx + 1 - args["checkpoint_size"]): (example_idx + 1)]
@@ -166,9 +313,9 @@ def enumeration_grailqa_debug():
         {
             "qid": qid,
             "time": search_t,
-            "searched_queries": query.code_raw if query else None,
+            "simulated_query_list": [q.code_raw for q in query_list],
         } 
-        for (query, search_t, qid) in zip(searched_query_list, search_time_list, qid_list)
+        for (query_list, search_t, qid) in zip(searched_query_list, search_time_list, qid_list)
     ]
 
     dump_json(final_results, os.path.join(
@@ -176,4 +323,5 @@ def enumeration_grailqa_debug():
     ))
 
 if __name__=='__main__':
-    enumeration_grailqa_debug()
+    # enumeration_grailqa_debug()
+    enumeration_grailqa()
