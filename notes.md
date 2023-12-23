@@ -11,7 +11,9 @@
     - 我们作如下修改
         - `device`: 改成我们自己的编号？
         - `train_data_path`: 替换成 目标训练集
-        - `validation_data_path`: 替换成 目标训练集
+        - `validation_data_path`: 无需替换，原始验证集即可
+        - `shuffle`: 应该都改为 true
+- SPARQL 缓存检查
 - GrailQA 所执行的命令
 训练
 ```shell
@@ -25,7 +27,7 @@ PYTHONHASHSEED=23 python run.py \
     --include-package \
     utils.huggingface_interface \
     -s \
-    predictions/grailqa_2_1023
+    predictions/grailqa_v1.0_train_0_200_linking_2023-12-18_simulated
 ```
 预测
 ```shell
@@ -65,9 +67,12 @@ PYTHONHASHSEED=23 python run.py \
         - 里面的 class 信息，用于 gold_answer_type; 但是这个好像是需要的？不过既然是 gold, 我们使用数据集中正确的信息，应该是没问题的（我们不需要更新）
 
 - 总结: 除了 ["s-expression"] 之外， ["graph_query"]["nodes"] 里面的内容也做相应替换；替换方式参考我们之前的那些数据处理（从我们的 Simulated Query 中抽取这些信息）
-    - 我们的 S-expression 和他们有一些格式上的不同（例如 Literal, EQ, 类型的处理等）；保证这些不同不会带来执行上的问题
-
+    - 我们的 S-expression 和他们有一些格式上的不同（例如 Literal, EQ, 类型的处理等）；但是针对 Pangu, 我们做了后处理，把这些格式又转回来了
 
 - 输出
     - metrics.json, 有验证集上的 EM, F1 等信息
     - prediction.txt (需要执行 prediction 的另外命令)， 给出每个问题预测得到的 S-expression 和 执行结果
+
+# 数据处理
+部分见 data_process.py
+还有一部分见 Experiment_Freebase 下的 data_process_pangu.py --> 有一些依赖函数在那边

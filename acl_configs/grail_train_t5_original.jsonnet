@@ -1,6 +1,6 @@
 local dataset = "grail";
 local decoding_steps = 5;
-local device = 0;
+local device = 7;
 local training_option = 2;
 local val_option = 2;
 local eos = "[SEP]";
@@ -18,8 +18,8 @@ local eos = "[SEP]";
     "training_option": val_option,
     "infer": true
   },
-  "train_data_path": "data/grailqa/grailqa_v1.0_train_0_200_linking_2023-12-18/grailqa_v1.0_train_0_200_simulated.json",
-  "validation_data_path": "data/grailqa/grailqa_v1.0_dev.json",
+  "train_data_path": "data/grailqa_v1.0_train.json",
+  "validation_data_path": "data/grailqa_v1.0_dev.json",
   "model": {
     "type": "bottom_up",
     "training_option": training_option,
@@ -34,11 +34,11 @@ local eos = "[SEP]";
     "dropout": 0.5
   },
   "data_loader": {   // previously iterator
-    "shuffle": true, // Debug, revert to true later
+    "shuffle": true,
     "batch_size": 1
   },
   "validation_data_loader": {
-    "shuffle": true, // Debug, revert to true later
+    "shuffle": true,
     "batch_size": 1
   },
   "trainer": {
