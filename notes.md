@@ -27,14 +27,14 @@ PYTHONHASHSEED=23 python run.py \
     --include-package \
     utils.huggingface_interface \
     -s \
-    predictions/grailqa_v1.0_train_0_200_linking_2023-12-18_simulated
+    predictions/grailqa_v1.0_train_0_200_linking_2023-12-18_original
 ```
 预测
 ```shell
 PYTHONHASHSEED=23 python run.py \
     predict \
-    predictions/grailqa_2_1023/model.tar.gz \
-    data/grailqa_v1.0_dev_2.json \
+    predictions/grailqa_v1.0_train_0_200_linking_2023-12-18_original/model.tar.gz \
+    data/grailqa/grailqa_v1.0_dev.json \
     --include-package \
     new_model.bottom_up_parser \
     --include-package \
@@ -42,11 +42,18 @@ PYTHONHASHSEED=23 python run.py \
     --include-package \
     utils.huggingface_interface \
     --output-file \
-    predictions/grailqa_2_1023/predictions.txt \
+    predictions/grailqa_v1.0_train_0_200_linking_2023-12-18_original/predictions.txt \
     --use-dataset-reader \
     --cuda 0 \
     -o \
     "{'model': {'infer': true}, 'validation_dataset_reader': {'infer': true, 'perfect_entity_linking': false}}"
+```
+
+获得 F1 等指标:
+```
+python grailqa_evaluate.py <path_to_dev> <path_to_predictions> --fb_roles <path_to_fb_roles> --fb_types <path_to_fb_types> --reverse_properties <path_to_reverse_properties>
+
+python grailqa_evaluate.py data/grailqa/grailqa_v1.0_dev.json predictions/grailqa_v1.0_train_0_200_linking_2023-12-18_simulated/predictions.txt --fb_roles ontology/fb_roles --fb_types ontology/fb_types --reverse_properties ontology/reverse_properties
 ```
 
 # 整体流程归纳
