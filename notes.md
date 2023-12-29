@@ -83,3 +83,32 @@ python grailqa_evaluate.py data/grailqa/grailqa_v1.0_dev.json predictions/grailq
 # 数据处理
 部分见 data_process.py
 还有一部分见 Experiment_Freebase 下的 data_process_pangu.py --> 有一些依赖函数在那边
+
+# 修改过的文件记录
+- 详细 diff 见 https://github.com/WuXuan374/Pangu/compare/5caf0a5..c9a1b30; diff 方式参考 https://docs.github.com/en/pull-requests/committing-changes-to-your-project/viewing-and-comparing-commits/comparing-commits
+- 还有一些其他的改动，认为没必要写出来（比如一些笔记）
+- utils
+    - sparql_executer.py: 没有太大改动，修改了 endpoint, 以及 logging 方式
+        - 网络错误等，不要直接退出程序，给个默认值（[]）即可
+    - sparql_cache.py: 没有太大改动
+    - kb_environment.py: 只加了一个 try-catch 结构
+    - logic_form_util.py: 比较重要，对于我们 S-expression 格式的一些兼容处理
+        - 注意还有 WebQSP 的一点处理，被我们注释掉了; 这段处理针对字面量类型的 Literal, 但是 Simulated Query 这边，我们已经预先处理好了这种 literal 的格式("Country"@en)
+            - 如果是跑 original 代码的话，可能要找回原来的版本
+![Alt text](img/image.png)
+- acl_configs
+    - grail_train_t5.jsonnet: 主要修改训练集路径
+- data_process.py: 用不上
+- grailqa_evaluate.py: 官方脚本
+- new_model
+    - bottom_up_parser.py
+        - 日志记录；**硬编码序列长度限制，避免爆显存**
+    - bottom_up_parser_reader.py
+        - gold_answer_type 的处理
+        - 一些 try-catch 结构
+
+# WebQSP 相关数据来源
+data/ 目录下的数据来源: https://buckeyemailosu-my.sharepoint.com/personal/gu_826_buckeyemail_osu_edu/_layouts/15/onedrive.aspx?id=%2Fpersonal%2Fgu%5F826%5Fbuckeyemail%5Fosu%5Fedu%2FDocuments%2Fdata%2Ezip&parent=%2Fpersonal%2Fgu%5F826%5Fbuckeyemail%5Fosu%5Fedu%2FDocuments&ga=1
+相关说明见 issue: https://github.com/dki-lab/Pangu/issues/10, 应该是作者官方提供的
+
+https://github.com/dki-lab/Pangu/issues/10: 注意 WebQSP 上的效果如果不好，可能要尝试设置 em_augmentation=False （训练时）

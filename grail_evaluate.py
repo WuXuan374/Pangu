@@ -237,7 +237,7 @@ class SemanticMatcher:
             return G
 
 def convert_prediction_format():
-    old_file = "predictions/grailqa_v1.0_train_0_200_linking_2023-12-18_simulated/predictions.txt"
+    old_file = "predictions/grailqa_v1.0_train_0_200_linking_2023-12-18_original/predictions.txt"
     data = dict()
     with open(old_file, 'r') as f:
         for line in f:
@@ -246,7 +246,7 @@ def convert_prediction_format():
                 "logical_form": line["logical_form"],
                 "answer": line["answer"]
             }
-    json.dump(data, open("predictions/grailqa_v1.0_train_0_200_linking_2023-12-18_simulated/predictions_for_evaluation.json", 'w'))
+    json.dump(data, open("predictions/grailqa_v1.0_train_0_200_linking_2023-12-18_original/predictions_for_evaluation.json", 'w'))
     
 
 

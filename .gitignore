@@ -1,4 +1,5 @@
 predictions/*
 cache/*
 data/*
+img/*
 *.pyc
