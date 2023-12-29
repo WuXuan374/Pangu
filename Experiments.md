@@ -162,3 +162,45 @@ Evaluate original_0_200
 ```shell
 python grail_evaluate.py data/grailqa/grailqa_v1.0_dev.json predictions/grailqa_v1.0_train_0_200_linking_2023-12-18_original/predictions_for_evaluation.json --fb_roles ontology/fb_roles --fb_types ontology/fb_types --reverse_properties ontology/reverse_properties
 ```
+
+# webqsp_train_bert
+TODO: 根据 https://github.com/dki-lab/Pangu/issues/10, 可能也要尝试 "em_augmentation": false
+Train 
+```shell
+PYTHONHASHSEED=23 python run.py \
+    train \
+    acl_configs/webq_train_bert_base.jsonnet \
+    --include-package \
+    new_model.bottom_up_parser \
+    --include-package \
+    new_model.bottom_up_parser_reader \
+    --include-package \
+    utils.huggingface_interface \
+    -s \
+    predictions/webqsp_train_2023-12-29
+```
+
+预测
+```shell
+PYTHONHASHSEED=23 python run.py \
+    predict \
+    predictions/webqsp_train_2023-12-29/model.tar.gz \
+    data/webqsp/webqsp_0107.test.json \
+    --include-package \
+    new_model.bottom_up_parser \
+    --include-package \
+    new_model.bottom_up_parser_reader \
+    --include-package \
+    utils.huggingface_interface \
+    --output-file \
+    predictions/webqsp_train_2023-12-29/predictions.txt \
+    --use-dataset-reader \
+    --cuda 0 \
+    -o \
+    "{'model': {'infer': true}, 'validation_dataset_reader': {'infer': true, 'perfect_entity_linking': false}}"
+```
+
+Evaluate TODO: webqsp 评价脚本
+```shell
+python grail_evaluate.py data/grailqa/grailqa_v1.0_dev.json predictions/grailqa_v1.0_train_0_200_linking_2023-12-18_original/predictions_for_evaluation.json --fb_roles ontology/fb_roles --fb_types ontology/fb_types --reverse_properties ontology/reverse_properties
+```
