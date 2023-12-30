@@ -731,7 +731,8 @@ class BottomUpParser(Model):
                     try:
                         wrapped_program = self._wrap_program(program, entity_name)
                     except Exception:
-                        print("wrapped_program exception:", program)
+                        logger.error(f"wrapped_program exception: {program}")
+                        wrapped_program = None # 出错，默认值为 None
                     if wrapped_program is not None:
                         candidate_programs.append(wrapped_program)
                     gold_ids.append(len(candidate_programs) - 1)

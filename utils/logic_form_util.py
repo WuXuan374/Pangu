@@ -434,7 +434,8 @@ def get_derivations_from_lisp(expression: List):
             rtn.update(get_derivations_from_lisp(expression[2]))
             return rtn
     elif expression[0] in ['ARGMIN', 'ARGMAX']:
-        return None  # do not need to handle for now
+        # return None  # do not need to handle for now
+        return dict()
     elif expression[0] == 'COUNT':
         return get_derivations_from_lisp(expression[1])
     elif expression[0] == 'JOIN':
