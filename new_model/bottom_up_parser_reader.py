@@ -152,7 +152,7 @@ class BUParser_DatasetReader(DatasetReader):
                                 gold_answer_type = node['id']
                                 break
                     # 从 original 数据集中获得的 gold_answer_type, 同样是通过遍历 node 得到
-                    if gold_answer_type is None:
+                    if gold_answer_type is None and (not self._infer):
                         gold_answer_type = item["gold_answer_type"]
                     try:
                         instance = self.text_to_instance(item['question'], entity_name=entity_name_map,

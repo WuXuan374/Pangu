@@ -200,7 +200,13 @@ PYTHONHASHSEED=23 python run.py \
     "{'model': {'infer': true}, 'validation_dataset_reader': {'infer': true, 'perfect_entity_linking': false}}"
 ```
 
-Evaluate TODO: webqsp 评价脚本
-```shell
-python grail_evaluate.py data/grailqa/grailqa_v1.0_dev.json predictions/grailqa_v1.0_train_0_200_linking_2023-12-18_original/predictions_for_evaluation.json --fb_roles ontology/fb_roles --fb_types ontology/fb_types --reverse_properties ontology/reverse_properties
+在 webqsp_evaluate.py 中
+首先执行
+```
+convert_prediction_format('webqsp_train_2023-12-29')
+```
+
+随后运行(main())
+```
+python webqsp_evaluate.py data/webqsp/origin/WebQSP/data/WebQSP.test.json predictions/webqsp_train_2023-12-29/predictions_for_evaluation.json
 ```

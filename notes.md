@@ -95,9 +95,14 @@ python grailqa_evaluate.py data/grailqa/grailqa_v1.0_dev.json predictions/grailq
     - logic_form_util.py: 比较重要，对于我们 S-expression 格式的一些兼容处理
         - 注意还有 WebQSP 的一点处理，被我们注释掉了; 这段处理针对字面量类型的 Literal, 但是 Simulated Query 这边，我们已经预先处理好了这种 literal 的格式("Country"@en)
             - 如果是跑 original 代码的话，可能要找回原来的版本
+        - L440, 默认返回一个 dict(), 和其他情况保持一致
 ![Alt text](img/image.png)
 - acl_configs
     - grail_train_t5.jsonnet: 主要修改训练集路径
+    - webq_train_bert_base.jsonnet
+        - em_augmentation=False, 按照 github issue 的说法 https://github.com/dki-lab/Pangu/issues/10
+        - 训练集路径
+
 - data_process.py: 用不上
 - grailqa_evaluate.py: 官方脚本
 - new_model
@@ -105,6 +110,7 @@ python grailqa_evaluate.py data/grailqa/grailqa_v1.0_dev.json predictions/grailq
         - 日志记录；**硬编码序列长度限制，避免爆显存**
     - bottom_up_parser_reader.py
         - gold_answer_type 的处理
+            - WebQSP test 时，采用原来的处理（没有 graph_query, 则 gold_answer_type 为 None）
         - 一些 try-catch 结构
 
 # WebQSP 相关数据来源
@@ -112,3 +118,12 @@ data/ 目录下的数据来源: https://buckeyemailosu-my.sharepoint.com/persona
 相关说明见 issue: https://github.com/dki-lab/Pangu/issues/10, 应该是作者官方提供的
 
 https://github.com/dki-lab/Pangu/issues/10: 注意 WebQSP 上的效果如果不好，可能要尝试设置 em_augmentation=False （训练时）
+
+# 关于链接结果的思考
+Pangu 中的实体链接是直接使用其他工作的结果(只在 Inference 时使用链接结果)，具体而言
+- GrailQA: TIARA
+- WebQSP: ELQ
+我们在 Simulated Query 的实验中直接使用了 Pangu 的实体链接结果
+- 另外再去复现这两个方法的链接结果有点麻烦了，在 Pangu 的代码中也没有给出这两个方法的链接代码，只给了结果
+- 完全做到不利用任何训练数据好像是不可能的，比如 ELQ 就是在 WebQSP 上预训练过的，这没办法
+- 还需要注意的是，如果我们对比 IR 方法或者其他的 <question, answer> 方法，在 WebQSP 上，他们都使用 oracle entity linking 
