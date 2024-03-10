@@ -22,6 +22,27 @@ def sample_grailqa(n=100):
     grailqa_all = load_json("data/grailqa_v1.0_dev.json")
     dump_json(grailqa_all[:n], f"data/grailqa_v1.0_dev_{n}.json")
 
+# def find_bug_items():
+#     # (AND (AND (AND (AND
+#     qid_list = list()
+#     src_data = load_json("data/grailqa/grailqa_train_golden_2023-12-31/grailqa_train_simulated.json")
+#     for item in src_data:
+#         if "(AND (AND (AND (AND" in item["s_expression"]:
+#             qid_list.append(item["qid"])
+#     print(qid_list)
+def generate_debug_file():
+    qid_list = [
+         2101556000000, 3201695015000, 2101324002000, 3200228000000, 2101324004000, 2100279010000, 2103366003000, 2102566011000, 2105063007000, 2101324008000, 2102576009000, 2100882007000, 2100672010000, 2100559015000, 2100672015000, 4301917006000, 3203354013000, 2102300007000, 3201695006000, 2102010009000, 2100559005000, 2101411003000,
+         3203977002000
+    ]
+    all_data = load_json('data/grailqa/grailqa_train_golden_2023-12-31/grailqa_train_simulated.json')
+    qid_to_data = {ex["qid"]: ex for ex in all_data}
+    selected_data = [
+        qid_to_data[qid] for qid in qid_list
+    ]
+    dump_json(selected_data, "data/grailqa/grailqa_train_golden_2023-12-31/grailqa_debug.json")
 
 if __name__ == "__main__":
-    sample_grailqa(100)
+    # sample_grailqa(100)
+    # find_bug_items()
+    generate_debug_file()

@@ -92,10 +92,13 @@ python grailqa_evaluate.py data/grailqa/grailqa_v1.0_dev.json predictions/grailq
         - 网络错误等，不要直接退出程序，给个默认值（[]）即可
     - sparql_cache.py: 没有太大改动
     - kb_environment.py: 只加了一个 try-catch 结构
+        - L753: 原来会报错，仍然 try-catch --> candidate_programs 不做 append, 应该没啥影响
     - logic_form_util.py: 比较重要，对于我们 S-expression 格式的一些兼容处理
         - 注意还有 WebQSP 的一点处理，被我们注释掉了; 这段处理针对字面量类型的 Literal, 但是 Simulated Query 这边，我们已经预先处理好了这种 literal 的格式("Country"@en)
             - 如果是跑 original 代码的话，可能要找回原来的版本
         - L440, 默认返回一个 dict(), 和其他情况保持一致
+        - postprocess_raw_code --> 对程序影响最小的修改方式
+            - bottom_up_parser.py, L757 和 L726
 ![Alt text](img/image.png)
 - acl_configs
     - grail_train_t5.jsonnet: 主要修改训练集路径
@@ -108,6 +111,8 @@ python grailqa_evaluate.py data/grailqa/grailqa_v1.0_dev.json predictions/grailq
 - new_model
     - bottom_up_parser.py
         - 日志记录；**硬编码序列长度限制，避免爆显存**
+        - L239: 我们观察到 height 过大，在后面 forward() 函数里面可能导致 list out of index error; 故选择在读取数据时检查 height, 如果 height 过大，则抛出一个异常（外层会舍弃这个 example）
+        - L570: 同样是观察到 L614 这边，如果 gold_ids 长度大于 beam_size 会报错；故将 gold_ids 截取前 beam size 个
     - bottom_up_parser_reader.py
         - gold_answer_type 的处理
             - WebQSP test 时，采用原来的处理（没有 graph_query, 则 gold_answer_type 为 None）
@@ -127,3 +132,7 @@ Pangu 中的实体链接是直接使用其他工作的结果(只在 Inference �
 - 另外再去复现这两个方法的链接结果有点麻烦了，在 Pangu 的代码中也没有给出这两个方法的链接代码，只给了结果
 - 完全做到不利用任何训练数据好像是不可能的，比如 ELQ 就是在 WebQSP 上预训练过的，这没办法
 - 还需要注意的是，如果我们对比 IR 方法或者其他的 <question, answer> 方法，在 WebQSP 上，他们都使用 oracle entity linking 
+
+## debug 结束，改成正式运行
+- 训练集数据
+- 缓存

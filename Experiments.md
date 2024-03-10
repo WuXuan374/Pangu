@@ -210,3 +210,130 @@ convert_prediction_format('webqsp_train_2023-12-29')
 ```
 python webqsp_evaluate.py data/webqsp/origin/WebQSP/data/WebQSP.test.json predictions/webqsp_train_2023-12-29/predictions_for_evaluation.json
 ```
+
+预测, 使用 Oracle entity linking 
+cuda=2, 仍然是 GeForce 卡，应该效果是一样的
+```shell
+PYTHONHASHSEED=23 python run.py \
+    predict \
+    predictions/webqsp_train_2023-12-29/model.tar.gz \
+    data/webqsp/webqsp_0107.test.json \
+    --include-package \
+    new_model.bottom_up_parser \
+    --include-package \
+    new_model.bottom_up_parser_reader \
+    --include-package \
+    utils.huggingface_interface \
+    --output-file \
+    predictions/webqsp_train_2023-12-29/predictions_oracle_entity_linking.txt \
+    --use-dataset-reader \
+    --cuda 2 \
+    -o \
+    "{'model': {'infer': true}, 'validation_dataset_reader': {'infer': true, 'perfect_entity_linking': true}}"
+```
+
+在 webqsp_evaluate.py 中
+首先执行
+```
+convert_prediction_format('webqsp_train_2023-12-29')
+```
+
+随后运行(main())
+```
+python webqsp_evaluate.py data/webqsp/origin/WebQSP/data/WebQSP.test.json predictions/webqsp_train_2023-12-29/predictions_oracle_entity_linking_for_evaluation.json
+```
+
+# grailqa_train_t5
+首先完成数据的复制，见 /home4/xwu/Pangu/data/grailqa/grailqa_train_golden_2023-12-31 下的 README
+
+Train -- 跳过了 140 个例子 -- 这些例子一般会引起异常，所以我们打算在 reading 阶段就排除掉
+```shell
+PYTHONHASHSEED=23 python run.py \
+    train \
+    acl_configs/grail_train_t5.jsonnet \
+    --include-package \
+    new_model.bottom_up_parser \
+    --include-package \
+    new_model.bottom_up_parser_reader \
+    --include-package \
+    utils.huggingface_interface \
+    -s \
+    predictions/grailqa_train_golden_2023-12-31
+```
+
+预测
+```shell
+PYTHONHASHSEED=23 python run.py \
+    predict \
+    predictions/grailqa_train_golden_2023-12-31/model.tar.gz \
+    data/grailqa/grailqa_v1.0_dev.json \
+    --include-package \
+    new_model.bottom_up_parser \
+    --include-package \
+    new_model.bottom_up_parser_reader \
+    --include-package \
+    utils.huggingface_interface \
+    --output-file \
+    predictions/grailqa_train_golden_2023-12-31/predictions.txt \
+    --use-dataset-reader \
+    --cuda 0 \
+    -o \
+    "{'model': {'infer': true}, 'validation_dataset_reader': {'infer': true, 'perfect_entity_linking': false}}"
+```
+
+在 grail_evaluate.py 中
+首先执行
+```
+convert_prediction_format('grailqa_train_golden_2023-12-31')
+```
+
+随后运行(main())
+```
+python grail_evaluate.py data/grailqa/grailqa_v1.0_dev.json predictions/grailqa_train_golden_2023-12-31/predictions_for_evaluation.json --fb_roles ontology/fb_roles --fb_types ontology/fb_types --reverse_properties ontology/reverse_properties
+```
+
+预测, 使用 Oracle entity linking 
+```shell
+PYTHONHASHSEED=23 python run.py \
+    predict \
+    predictions/grailqa_train_golden_2023-12-31/model.tar.gz \
+    data/grailqa/grailqa_v1.0_dev.json \
+    --include-package \
+    new_model.bottom_up_parser \
+    --include-package \
+    new_model.bottom_up_parser_reader \
+    --include-package \
+    utils.huggingface_interface \
+    --output-file \
+    predictions/grailqa_train_golden_2023-12-31/predictions_oracle_entity_linking.txt \
+    --use-dataset-reader \
+    --cuda 0 \
+    -o \
+    "{'model': {'infer': true}, 'validation_dataset_reader': {'infer': true, 'perfect_entity_linking': true}}"
+```
+在 grail_evaluate.py 中
+首先执行
+```
+convert_prediction_format('grailqa_train_golden_2023-12-31')
+```
+
+随后运行(main())
+```
+python grail_evaluate.py data/grailqa/grailqa_v1.0_dev.json predictions/grailqa_train_golden_2023-12-31/predictions_oracle_entity_linking_for_evaluation.json --fb_roles ontology/fb_roles --fb_types ontology/fb_types --reverse_properties ontology/reverse_properties
+```
+
+
+# webqsp_train_bert_0310
+Train 
+```shell
+PYTHONHASHSEED=23 python run.py \
+    train \
+    acl_configs/webq_train_bert_base.jsonnet \
+    --include-package \
+    new_model.bottom_up_parser \
+    --include-package \
+    new_model.bottom_up_parser_reader \
+    --include-package \
+    utils.huggingface_interface \
+    -s \
+    predictions/webqsp_train_2024-03-10

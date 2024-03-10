@@ -227,7 +227,7 @@ class BUParser_DatasetReader(DatasetReader):
                     gold_programs[k].append(Program(source=source,
                                                     code=filled_programs[pid],
                                                     code_raw=filled_programs_raw[pid],
-                                                    height=k))
+                                                    height=k)) # 这个地方也可能导致异常，同样是查询深度太大导致的
             if height < self._decoding_steps:
                 # fill the decoding steps with the finalized gold program
                 for i in range(self._decoding_steps - height):
@@ -236,7 +236,8 @@ class BUParser_DatasetReader(DatasetReader):
             height, gold_programs = None, None
 
         # print("gold programs:", gold_programs)
-
+        if (height is not None) and (height > 9):
+            raise Exception(f"height: {height} exceeds, will lead to list index out of range exception") 
         instance_dict = {"input_pair": input_field,
                          "label": label_field,
                          "question": MetadataField(question),

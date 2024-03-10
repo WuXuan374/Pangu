@@ -567,6 +567,7 @@ class BottomUpParser(Model):
                 # todo (11/05) after not returning the same program as a admissible candidate, for step gold_height+1, we always need to do wrap_program. Optimize this
                 gold_ids, em_gold_ids = self._get_gold_ids(gold_programs[decoding_step][i], candidate_programs_i,
                                                            entity_name[i])
+                gold_ids = gold_ids[:self._beam_size]
                 # downsampling for training
                 # if self.training and len(candidate_programs_i) > 10:
                 #     down_sampled_candidate_i = []
@@ -723,9 +724,13 @@ class BottomUpParser(Model):
                         if candidate_programs[i].code_raw == program.code_raw:
                             gold_ids.append(i)
                             flag = True
-                        elif same_logical_form(postprocess_raw_code(candidate_programs[i].code_raw),
+                        else:
+                            try:
+                                if same_logical_form(postprocess_raw_code(candidate_programs[i].code_raw),
                                                postprocess_raw_code(program.code_raw)):
-                            em_gold_ids.append(i)
+                                    em_gold_ids.append(i)
+                            except Exception as e:
+                                logger.error(f"L732: error: {e}")
 
                 if not flag:
                     try:
@@ -750,9 +755,13 @@ class BottomUpParser(Model):
                     if candidate_programs[i].code_raw == gold_programs.code_raw:
                         gold_ids.append(i)
                         flag = True
-                    elif same_logical_form(postprocess_raw_code(candidate_programs[i].code_raw),
-                                           postprocess_raw_code(gold_programs.code_raw)):
-                        em_gold_ids.append(i)
+                    else:
+                        try:
+                            if same_logical_form(postprocess_raw_code(candidate_programs[i].code_raw),
+                                            postprocess_raw_code(gold_programs.code_raw)):
+                                em_gold_ids.append(i)
+                        except Exception as e:
+                            logger.error(f"L763: error: {e}")
 
             if not flag:
                 # candidate_programs.append(Program(code=gold_programs, code_raw=gold_target, finalized=True))

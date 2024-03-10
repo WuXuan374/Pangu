@@ -750,16 +750,18 @@ class Computer:
                     # execution = self.execute_JOIN(program.execution, r)
                     if program.derivations is None:
                         print("derivations none:", program.code_raw)
-
-                    candidate_programs.append(Program(source=program.source,
-                                                      code=code_i,
-                                                      code_raw=code_raw_i,
-                                                      function='JOIN',
-                                                      derivations=_extend_deri(program.derivations,
-                                                                               program.source, r),
-                                                      height=program.height + 1,
-                                                      finalized=False if self._dataset != 'webq' else True,
-                                                      execution=(self.execute_JOIN, program.execution, r)))
+                    try:
+                        candidate_programs.append(Program(source=program.source,
+                                                        code=code_i,
+                                                        code_raw=code_raw_i,
+                                                        function='JOIN',
+                                                        derivations=_extend_deri(program.derivations,
+                                                                                program.source, r),
+                                                        height=program.height + 1,
+                                                        finalized=False if self._dataset != 'webq' else True,
+                                                        execution=(self.execute_JOIN, program.execution, r)))
+                    except Exception as e:
+                        logger.error(f"L764: {e}")
                 if self.training:
                     if self._dataset != 'webq':
                         possible_types = self.get_classes_for_variables(program.execution)

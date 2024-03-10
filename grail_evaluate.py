@@ -236,8 +236,9 @@ class SemanticMatcher:
 
             return G
 
-def convert_prediction_format():
-    old_file = "predictions/grailqa_v1.0_train_0_200_linking_2023-12-18_original/predictions.txt"
+def convert_prediction_format(folder):
+    # old_file = f"predictions/{folder}/predictions.txt"
+    old_file = f"predictions/{folder}/predictions_oracle_entity_linking.txt"
     data = dict()
     with open(old_file, 'r') as f:
         for line in f:
@@ -246,7 +247,8 @@ def convert_prediction_format():
                 "logical_form": line["logical_form"],
                 "answer": line["answer"]
             }
-    json.dump(data, open("predictions/grailqa_v1.0_train_0_200_linking_2023-12-18_original/predictions_for_evaluation.json", 'w'))
+    # json.dump(data, open(f"predictions/{folder}/predictions_for_evaluation.json", 'w'))
+    json.dump(data, open(f"predictions/{folder}/predictions_oracle_entity_linking_for_evaluation.json", 'w'))
     
 
 
@@ -315,4 +317,4 @@ if __name__ == '__main__':
 
     print(stats)
 
-    # convert_prediction_format()
+    # convert_prediction_format('grailqa_train_golden_2023-12-31')
