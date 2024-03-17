@@ -983,3 +983,7 @@ class BottomUpParser(Model):
 
         except UnboundLocalError:
             return None
+        
+        except AssertionError as e:
+            logger.error(f"AssertionError: {e}")
+            return None
