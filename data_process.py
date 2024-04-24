@@ -41,17 +41,30 @@ def generate_debug_file():
     #     qid_to_data[qid] for qid in qid_list
     # ]
     # dump_json(selected_data, "data/grailqa/grailqa_train_golden_2023-12-31/grailqa_debug.json")
-    qid_list = [
-        "WebQTrn-790", "WebQTrn-1307", "WebQTrn-1312", "WebQTrn-2238", "WebQTrn-2642", "WebQTrn-2731", "WebQTrn-3200"
-    ]
-    all_data = load_json('data/webqsp/webqsp_train/webqsp_train_simulated.json')
-    qid_to_data = {ex["qid"]: ex for ex in all_data}
+    # qid_list = [
+    #     "WebQTrn-790", "WebQTrn-1307", "WebQTrn-1312", "WebQTrn-2238", "WebQTrn-2642", "WebQTrn-2731", "WebQTrn-3200"
+    # ]
+    # all_data = load_json('data/webqsp/webqsp_train/webqsp_train_simulated.json')
+    # qid_to_data = {ex["qid"]: ex for ex in all_data}
+    # selected_data = [
+    #     qid_to_data[qid] for qid in qid_list
+    # ]
+    # dump_json(selected_data, "data/webqsp/webqsp_train/webqsp_train_debug.json")
+
+    # question_list = [
+    #     "the beyonce experience : live audio is what type of musical album ?"
+    # ]
+    all_data = load_json('data/grailqa/grailqa_train_golden_2024-03-15/grailqa_train_simulated.json')
+    # question_to_data = {ex["question"]: ex for ex in all_data}
     selected_data = [
-        qid_to_data[qid] for qid in qid_list
+        data_item for data_item in all_data
+        if 'the beyonce experience' in data_item['question'].lower()
     ]
-    dump_json(selected_data, "data/webqsp/webqsp_train/webqsp_train_debug.json")
+    dump_json(selected_data, "data/grailqa/grailqa_train_golden_2024-03-15/grailqa_train_debug.json")
 
 if __name__ == "__main__":
     # sample_grailqa(100)
     # find_bug_items()
-    generate_debug_file()
+    # generate_debug_file()
+
+    print(len(load_json("data/webqsp/webqsp_train/webqsp_train_simulated.json")))

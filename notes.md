@@ -106,13 +106,14 @@ python grailqa_evaluate.py data/grailqa/grailqa_v1.0_dev.json predictions/grailq
         - em_augmentation=False, 按照 github issue 的说法 https://github.com/dki-lab/Pangu/issues/10
         - 训练集路径
 
-- data_process.py: 用不上
+- data_process.py: debug 使用的一些数据
 - grailqa_evaluate.py: 官方脚本
 - new_model
     - bottom_up_parser.py
         - 日志记录；**硬编码序列长度限制，避免爆显存**
         - L239: 我们观察到 height 过大，在后面 forward() 函数里面可能导致 list out of index error; 故选择在读取数据时检查 height, 如果 height 过大，则抛出一个异常（外层会舍弃这个 example）
         - L570: 同样是观察到 L614 这边，如果 gold_ids 长度大于 beam_size 会报错；故将 gold_ids 截取前 beam size 个
+        - L507 将 catch UnboundedError 替换成 catch Exception
     - bottom_up_parser_reader.py
         - gold_answer_type 的处理
             - WebQSP test 时，采用原来的处理（没有 graph_query, 则 gold_answer_type 为 None）

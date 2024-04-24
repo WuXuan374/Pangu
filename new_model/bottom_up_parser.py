@@ -503,12 +503,13 @@ class BottomUpParser(Model):
                 else:
                     em = 0
                 # print("total passes:", num_candidates)
-            except UnboundLocalError:  # beam_programs referenced before assignment
+            # except UnboundLocalError:  # beam_programs referenced before assignment
+            except Exception as e:
                 # possible reasons for this:
                 # 1. empty entity linking results before implementing superlatives
                 # 2. no admissible relations for entities
                 em = 0
-                print("question:", question)
+                logger.error(f"question: {question}; error: {e}")
 
             # try:
             #     print(float(torch.softmax(scores[0], dim=0).max().data),

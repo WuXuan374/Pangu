@@ -1,6 +1,6 @@
 local dataset = "grail";
 local decoding_steps = 5;
-local device = 0;
+local device = 2;
 local training_option = 2;
 local val_option = 2;
 local eos = "[SEP]";
@@ -18,7 +18,7 @@ local eos = "[SEP]";
     "training_option": val_option,
     "infer": true
   },
-  "train_data_path": "data/grailqa/grailqa_train_golden_2023-12-31/grailqa_train_simulated.json",
+  "train_data_path": "data/grailqa/grailqa_train_golden_2024-03-15/grailqa_train_simulated.json",
   "validation_data_path": "data/grailqa/grailqa_v1.0_dev.json",
   "model": {
     "type": "bottom_up",

@@ -20,7 +20,7 @@ local eos = "[SEP]";
     "infer": true,
   },
   
-  "train_data_path": "data/webqsp/webqsp_train/webqsp_train_simulated.json",
+  "train_data_path": "data/webqsp/webqsp_train_basicQC/webqsp_train_simulated.json",
   "model": {
     "type": "bottom_up",
     "training_option": training_option,
