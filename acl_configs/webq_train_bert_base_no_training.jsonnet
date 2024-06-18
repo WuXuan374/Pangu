@@ -1,4 +1,4 @@
-local dataset = "grail";
+local dataset = "webq";
 local decoding_steps = 5;
 local device = 0;
 local training_option = 2;
@@ -9,17 +9,18 @@ local eos = "[SEP]";
     "type": "bottom_up",
     "dataset": dataset,
     "decoding_steps": decoding_steps,
-    "training_option": training_option
+    "training_option": training_option,
   },
   "validation_dataset_reader": {
     "type": "bottom_up",
     "dataset": dataset,
     "decoding_steps": decoding_steps,
+//    "training_option": training_option,
     "training_option": val_option,
-    "infer": true
+    "infer": true,
   },
-  "train_data_path": "data/grailqa/grailqa_train_t5_starQC_0505/grailqa_train_simulated.json",
-  "validation_data_path": "data/grailqa/grailqa_v1.0_dev.json",
+  
+  "train_data_path": "data/webqsp/webqsp_train_empty/webqsp_train_simulated.json",
   "model": {
     "type": "bottom_up",
     "training_option": training_option,
@@ -28,23 +29,32 @@ local eos = "[SEP]";
     "decoding_steps": decoding_steps,
     "loss_option": 1,
     "EOS": eos,
-    "em_augmentation": true,
-    "encoder_decoder": "t5-base",
-    "device": device,
+    "em_augmentation": false,
+    "device": device,  // this is a new field. Be careful when using -r option for training
+    "source_embedder": {
+      "token_embedders": {
+        "tokens": {
+          "type": "huggingface_transformer",
+          "model_name": "bert-base-uncased",
+          "pooling": true
+       }
+      }
+    },
+    "hidden_size": 768,
     "dropout": 0.5
   },
   "data_loader": {   // previously iterator
-    "shuffle": true, // Debug, revert to true later
+    "shuffle": true,
     "batch_size": 1
   },
   "validation_data_loader": {
-    "shuffle": true, // Debug, revert to true later
+    "shuffle": true,
     "batch_size": 1
   },
   "trainer": {
-    "num_epochs": 10,
+    "num_epochs": 1,
     "validation_metric": "+EM",
-    "patience": 3,
+    // "patience": 5,
     "cuda_device": device,
     "num_gradient_accumulation_steps": 8,
     "callbacks": [
@@ -54,11 +64,14 @@ local eos = "[SEP]";
     ],
     "optimizer": {
       "type": "adam",
-      "lr": 1e-4
+      "lr": 0.001,
+      "parameter_groups": [
+        [["source_embedder"], {"lr": 2e-5}]
+      ]
     }
 //    "summary_interval": 1
   },
- //   "distributed": {
- //    "cuda_devices": [4, 5, 6, 7]
- //   }
+//    "distributed": {
+//     "cuda_devices": [5, 6, 7]
+//    }
 }

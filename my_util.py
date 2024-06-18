@@ -4,8 +4,8 @@ import logging
 
 '''完成实验结果的打包'''
 def my_archive():
-    serialization_dir = "predictions/grailqa_1025_simulated_4104_for_prediction"
-    weights = "best.th"
+    serialization_dir = "predictions/grailqa_paper_starQC_0524_with_simulated_dev"
+    weights = "model_state_epoch_2.th"
     archive_path = None
     
     weights_file = os.path.join(serialization_dir, weights)
@@ -22,7 +22,7 @@ def my_archive():
         if os.path.isdir(archive_file):
             archive_file = os.path.join(archive_file, "model.tar.gz")
     else:
-        archive_file = os.path.join(serialization_dir, "model.tar.gz")
+        archive_file = os.path.join(serialization_dir, "epoch_2_model.tar.gz")
     logging.info("archiving weights and vocabulary to %s", archive_file)
 
     with tarfile.open(archive_file, "w:gz") as archive:

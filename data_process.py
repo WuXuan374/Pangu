@@ -19,8 +19,40 @@ def dump_json(obj, fname, indent=4, mode='w' ,encoding="utf8", ensure_ascii=Fals
 
 def sample_grailqa(n=100):
     # 直接取 top 100
-    grailqa_all = load_json("data/grailqa_v1.0_dev.json")
-    dump_json(grailqa_all[:n], f"data/grailqa_v1.0_dev_{n}.json")
+    grailqa_all = load_json("data/grailqa/grailqa_njuthesis_starQC_0510/grailqa_train_simulated.json")
+    dump_json(grailqa_all[:n], f"data/grailqa/grailqa_njuthesis_starQC_0510/grailqa_train_simulated_{n}.json")
+
+def get_grailqa_dev_without_query():
+    original = load_json("data/grailqa/grailqa_v1.0_dev.json")
+    new_list = list()
+    for ex in original:
+        new_list.append({
+            "qid": ex["qid"],
+            "question": ex["question"],
+            "answer": ex["answer"],
+            "level": ex["level"],
+            "graph_query": {
+                "nodes": ex["graph_query"]["nodes"]
+            }
+        })
+    dump_json(new_list, "data/grailqa/grailqa_v1.0_dev_wo_query.json")
+
+def compare_prediction_result():
+    from tqdm import tqdm
+    src_data = load_json("data/grailqa/grailqa_v1.0_test_public.json")
+    old_prediction = load_json("predictions/grailqa_njuthesis_starQC_0510_with_simulated_dev/test_set/predictions_for_evaluation.json")
+    new_prediction = load_json("predictions/grailqa_paper_starQC_0524_with_simulated_dev/test_set/predictions_for_evaluation.json")
+    qid_to_src = {item["qid"]: item for item in src_data}
+
+    diff_qid_set = set()
+    for qid in tqdm(old_prediction):
+        assert qid in new_prediction, print(f"qid: {qid}")
+        if (set(old_prediction[qid]["answer"]) != set(new_prediction[qid]["answer"])):
+            diff_qid_set.add(qid)
+            print(f"question: {qid_to_src[qid]['question']}; old_sexp: {old_prediction[qid]['logical_form']}; new_sexp: {new_prediction[qid]['logical_form']}")
+            print()
+
+    print(f"diff_qid_set: {len(diff_qid_set)}")
 
 # def find_bug_items():
 #     # (AND (AND (AND (AND
@@ -62,9 +94,33 @@ def generate_debug_file():
     ]
     dump_json(selected_data, "data/grailqa/grailqa_train_golden_2024-03-15/grailqa_train_debug.json")
 
+def qid_overlap():
+    original_test = load_json("data/grailqa/grailqa_v1.0_test_public.json")
+    original_qid_set = set([item['qid'] for item in original_test])
+
+    predicted = load_json("predictions/grailqa_train_basicQC_2024-04-26/test_set/predictions_for_evaluation.json")
+    predicted_qid_set = set(predicted.keys())
+    print(original_qid_set == predicted_qid_set, len(original_qid_set), len(predicted_qid_set))
+
+def failed_count():
+    predicted = load_json("predictions/grailqa_train_golden_2024-03-16/xwu_pangu_simulated_data/predictions_for_evaluation.json")
+    failed_list = [
+        (key, value) for (key, value) in predicted.items()
+        if (not value["logical_form"]) or (not value["answer"])
+    ]
+    print(len(failed_list))
+
 if __name__ == "__main__":
-    # sample_grailqa(100)
+    # sample_grailqa(1000)
     # find_bug_items()
     # generate_debug_file()
 
-    print(len(load_json("data/webqsp/webqsp_train/webqsp_train_simulated.json")))
+    # print(len(load_json("data/grailqa/grailqa_v1.0_dev.json")))
+    # qid_overlap()
+    # failed_count()
+    # get_grailqa_dev_without_query()
+
+    '''生成一个空文件，测试 WebQSP 在不做任何训练的情况下，其 KBQA 效果'''
+    # dump_json([], 'data/webqsp/webqsp_train_empty/webqsp_train_simulated.json')
+
+    compare_prediction_result()

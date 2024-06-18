@@ -101,7 +101,7 @@ python grailqa_evaluate.py data/grailqa/grailqa_v1.0_dev.json predictions/grailq
             - bottom_up_parser.py, L757 和 L726
 ![Alt text](img/image.png)
 - acl_configs
-    - grail_train_t5.jsonnet: 主要修改训练集路径
+    - grail_train_t5.jsonnet: 主要修改训练集和验证集路径
     - webq_train_bert_base.jsonnet
         - em_augmentation=False, 按照 github issue 的说法 https://github.com/dki-lab/Pangu/issues/10
         - 训练集路径
@@ -135,5 +135,5 @@ Pangu 中的实体链接是直接使用其他工作的结果(只在 Inference �
 - 还需要注意的是，如果我们对比 IR 方法或者其他的 <question, answer> 方法，在 WebQSP 上，他们都使用 oracle entity linking 
 
 ## debug 结束，改成正式运行
-- 训练集数据
+- 训练集、验证集数据
 - 缓存

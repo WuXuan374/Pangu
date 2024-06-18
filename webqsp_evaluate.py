@@ -111,9 +111,8 @@ def main():
     print("Average f1 over questions (accuracy): %.3f" % (f1sum / total))
     print("F1 of average recall and average precision: %.3f" % (2 * (recSum / total) * (precSum / total) / (recSum / total + precSum / total)))
     print("True accuracy (ratio of questions answered exactly correctly): %.3f" % (numCorrect / total))
-
 def convert_prediction_format(folder):
-    old_file = f"predictions/{folder}/predictions_oracle_entity_linking.txt"
+    old_file = f"predictions/{folder}/predictions.txt"
     data = list()
     with open(old_file, 'r') as f:
         for line in f:
@@ -122,8 +121,8 @@ def convert_prediction_format(folder):
                 "QuestionId": line["qid"],
                 "Answers": line["answer"]
             })
-    json.dump(data, open(f"predictions/{folder}/predictions_oracle_entity_linking_for_evaluation.json", 'w'))
+    json.dump(data, open(f"predictions/{folder}/predictions_for_evaluation.json", 'w'))
 
 if __name__ == "__main__":
     main()
-    # convert_prediction_format('webqsp_train_2023-12-29')
+    # convert_prediction_format('webqsp_bert_no_training_0521')

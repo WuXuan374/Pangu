@@ -237,8 +237,9 @@ class SemanticMatcher:
             return G
 
 def convert_prediction_format(folder):
-    # old_file = f"predictions/{folder}/predictions.txt"
-    old_file = f"predictions/{folder}/predictions_oracle_entity_linking.txt"
+    old_file = f"predictions/{folder}/predictions.txt"
+    # old_file = f"predictions/{folder}/test_set/predictions.txt"
+    # old_file = f"predictions/{folder}/epoch_2_prediction/predictions.txt"
     data = dict()
     with open(old_file, 'r') as f:
         for line in f:
@@ -247,8 +248,9 @@ def convert_prediction_format(folder):
                 "logical_form": line["logical_form"],
                 "answer": line["answer"]
             }
-    # json.dump(data, open(f"predictions/{folder}/predictions_for_evaluation.json", 'w'))
-    json.dump(data, open(f"predictions/{folder}/predictions_oracle_entity_linking_for_evaluation.json", 'w'))
+    json.dump(data, open(f"predictions/{folder}/predictions_for_evaluation.json", 'w'))
+    # json.dump(data, open(f"predictions/{folder}/test_set/predictions_for_evaluation.json", 'w'))
+    # json.dump(data, open(f"predictions/{folder}/epoch_2_prediction/predictions_for_evaluation.json", 'w'))
     
 
 
@@ -304,10 +306,11 @@ if __name__ == '__main__':
                     f1_sum += (2 * recall * precision / (recall + precision))
                     level_f1_sum[item['level']] += (2 * recall * precision / (recall + precision))
 
-
     stats = {}
     stats['em'] = em_sum / len(data)
     stats['f1'] = f1_sum / len(data)
+    stats['adjusted_em'] = em_sum / 5534
+    stats['adjusted_f1'] = f1_sum / 5534
     stats['em_iid'] = level_em_sum['i.i.d.'] / level_count['i.i.d.']
     stats['f1_iid'] = level_f1_sum['i.i.d.'] / level_count['i.i.d.']
     stats['em_comp'] = level_em_sum['compositional'] / level_count['compositional']
@@ -317,4 +320,4 @@ if __name__ == '__main__':
 
     print(stats)
 
-    # convert_prediction_format('grailqa_train_golden_2023-12-31')
+    # convert_prediction_format('grailqa_paper_baseline_0601_with_simulated_dev')

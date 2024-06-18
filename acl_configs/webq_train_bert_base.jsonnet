@@ -1,6 +1,6 @@
 local dataset = "webq";
 local decoding_steps = 5;
-local device = 1;
+local device = 0;
 local training_option = 2;
 local val_option = 2;
 local eos = "[SEP]";
@@ -20,7 +20,7 @@ local eos = "[SEP]";
     "infer": true,
   },
   
-  "train_data_path": "data/webqsp/webqsp_train_basicQC/webqsp_train_simulated.json",
+  "train_data_path": "data/webqsp/webqsp_train_baseline/webqsp_train_simulated.json",
   "model": {
     "type": "bottom_up",
     "training_option": training_option,
